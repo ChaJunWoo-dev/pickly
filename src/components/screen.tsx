@@ -29,7 +29,7 @@ export const Screen = ({
   ...props
 }: ScreenProps) => {
   const contentStyle = [
-    styles.content,
+    scroll ? styles.scrollContent : styles.content,
     padded && styles.padded,
     centered && styles.centered,
     contentContainerStyle,
@@ -72,6 +72,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    backgroundColor: theme.colors.background,
+    flexGrow: 1,
   },
   padded: {
     paddingHorizontal: theme.layout.screenPadding,
