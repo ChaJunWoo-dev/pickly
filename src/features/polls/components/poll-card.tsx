@@ -1,12 +1,10 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
-import {
-  getPollCategory,
-  type PollCategoryId,
-} from '../data/poll-categories';
+import { Pressable, StyleSheet, View } from 'react-native';
+import type { PollCategoryId } from '../data/poll-categories';
+import { PollCategoryPill } from './poll-category-pill';
 import { PollOptionList } from './poll-option-list';
+import { PollTimer } from './poll-timer';
 
 export type PollOptionPreview = {
   id: string;
@@ -29,47 +27,29 @@ export type PollCardData = {
 
 type PollCardProps = {
   poll: PollCardData;
+  onOpen?: (pollId: string) => void;
   onVote?: (pollId: string, optionId: string) => void;
 };
 
-export const PollCard = ({ poll, onVote }: PollCardProps) => {
-  const category = getPollCategory(poll.categoryId);
-  const isClosingSoon = poll.timeLeftSeconds <= 24 * 60 * 60;
-  const timerColor = isClosingSoon
-    ? theme.colors.danger
-    : theme.colors.textMuted;
-
+export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
   return (
     <Card elevated style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.category}>
-          <View
-            style={[
-              styles.categoryIcon,
-              { backgroundColor: category.backgroundColor },
-            ]}
-          >
-            <Ionicons color={category.color} name={category.icon} size={16} />
-          </View>
-
-          <AppText variant="label" weight="semibold">
-            {category.label}
-          </AppText>
-        </View>
-
-        <View style={styles.timer}>
-          <Ionicons color={timerColor} name="time-outline" size={14} />
-          <AppText
-            style={{ color: timerColor }}
-            variant="caption"
-            weight="semibold"
-          >
-            {poll.timeLeft} 남음
-          </AppText>
-        </View>
+        <PollCategoryPill categoryId={poll.categoryId} />
+        <PollTimer
+          timeLeft={poll.timeLeft}
+          timeLeftSeconds={poll.timeLeftSeconds}
+        />
       </View>
 
-      <View style={styles.titleBlock}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => onOpen?.(poll.id)}
+        style={({ pressed }) => [
+          styles.titleBlock,
+          pressed && styles.titleBlockPressed,
+        ]}
+      >
         <AppText style={styles.question} variant="subtitle" weight="bold">
           {poll.question}
         </AppText>
@@ -85,7 +65,7 @@ export const PollCard = ({ poll, onVote }: PollCardProps) => {
             </AppText>
           </View>
         </View>
-      </View>
+      </Pressable>
 
       <PollOptionList
         onVote={onVote}
@@ -105,18 +85,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  category: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  categoryIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
   rewardPill: {
     backgroundColor: theme.colors.rewardSoft,
     borderRadius: theme.radius.full,
@@ -126,6 +94,9 @@ const styles = StyleSheet.create({
   titleBlock: {
     gap: theme.spacing.sm,
   },
+  titleBlockPressed: {
+    opacity: 0.78,
+  },
   question: {
     color: theme.colors.text,
   },
@@ -133,10 +104,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  timer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.xxs,
   },
 });

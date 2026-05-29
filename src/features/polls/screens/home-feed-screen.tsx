@@ -1,5 +1,6 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard } from '../components/poll-card';
@@ -8,6 +9,15 @@ import { featuredPolls } from '../data/mock-polls';
 const activeFeedTab: FeedTab = 'popular';
 
 export const HomeFeedScreen = () => {
+  const router = useRouter();
+
+  const handleOpenPoll = (pollId: string) => {
+    router.push({
+      pathname: '/poll/[id]',
+      params: { id: pollId },
+    });
+  };
+
   const handleVote = (pollId: string, optionId: string) => {
     console.log('vote poll', pollId, optionId);
   };
@@ -39,7 +49,12 @@ export const HomeFeedScreen = () => {
 
       <View style={styles.feed}>
         {featuredPolls.map((poll) => (
-          <PollCard key={poll.id} onVote={handleVote} poll={poll} />
+          <PollCard
+            key={poll.id}
+            onOpen={handleOpenPoll}
+            onVote={handleVote}
+            poll={poll}
+          />
         ))}
       </View>
     </Screen>
