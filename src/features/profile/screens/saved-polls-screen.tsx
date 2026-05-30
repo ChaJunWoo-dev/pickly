@@ -3,7 +3,7 @@ import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
-import { featuredPolls } from '../data/mock-polls';
+import { featuredPolls } from '@/features/polls/data/mock-polls';
 
 export const SavedPollsScreen = () => {
   return (

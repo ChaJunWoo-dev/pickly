@@ -1,4 +1,4 @@
-import { AppSettingsScreen } from '@/features/polls/screens/app-settings-screen';
+import { AppSettingsScreen } from '@/features/profile/screens/app-settings-screen';
 
 export default function AppSettingsRoute() {
   return <AppSettingsScreen />;
