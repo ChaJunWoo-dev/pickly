@@ -1,4 +1,4 @@
-import { ParticipationHistoryScreen } from '@/features/polls/screens/participation-history-screen';
+import { ParticipationHistoryScreen } from '@/features/profile/screens/participation-history-screen';
 
 export default function ParticipationHistoryRoute() {
   return <ParticipationHistoryScreen />;
