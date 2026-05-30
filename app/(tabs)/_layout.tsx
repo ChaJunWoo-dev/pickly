@@ -8,7 +8,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primaryStrong,
+        tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
@@ -29,11 +29,29 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="create"
         options={{
-          title: '더보기',
+          title: '만들기',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons color={color} name="grid-outline" size={size} />
+            <Ionicons color={color} name="add-circle-outline" size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          title: '리워드',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons color={color} name="gift-outline" size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: '내정보',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons color={color} name="person-circle-outline" size={size} />
           ),
         }}
       />
