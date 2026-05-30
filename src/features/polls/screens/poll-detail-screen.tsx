@@ -2,9 +2,11 @@ import { AppText, Avatar, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PollCategoryPill } from '../components/poll-category-pill';
 import { PollCommentPreviewCard } from '../components/poll-comment-preview-card';
+import { PollDetailActionSheet } from '../components/poll-detail-action-sheet';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
 import { featuredPolls } from '../data/mock-polls';
@@ -12,6 +14,7 @@ import { featuredPolls } from '../data/mock-polls';
 export const PollDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
+  const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
   const poll = featuredPolls.find((item) => item.id === id) ?? featuredPolls[0];
   const selectedOptionId = poll.options[0]?.id;
 
@@ -38,7 +41,11 @@ export const PollDetailScreen = () => {
               size={20}
             />
           </Pressable>
-          <Pressable accessibilityRole="button" style={styles.iconButton}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setIsActionSheetVisible(true)}
+            style={styles.iconButton}
+          >
             <Ionicons
               color={theme.colors.text}
               name="ellipsis-horizontal"
@@ -119,6 +126,11 @@ export const PollDetailScreen = () => {
       />
 
       <PollCommentPreviewCard />
+
+      <PollDetailActionSheet
+        onClose={() => setIsActionSheetVisible(false)}
+        visible={isActionSheetVisible}
+      />
     </Screen>
   );
 };
