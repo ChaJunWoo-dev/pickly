@@ -3,18 +3,30 @@ import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-const optionFields = [
-  {
-    id: 'option-1',
-    placeholder: '선택지 1',
-  },
-  {
-    id: 'option-2',
-    placeholder: '선택지 2',
-  },
-];
+export type PollOptionInput = {
+  id: string;
+  text: string;
+};
 
-export const PollOptionFields = () => {
+type PollOptionFieldsProps = {
+  options: PollOptionInput[];
+  optionMaxLength: number;
+  maxOptionCount: number;
+  onAddOption: () => void;
+  onChangeOptionText: (optionId: string, text: string) => void;
+  onRemoveOption: (optionId: string) => void;
+};
+
+export const PollOptionFields = ({
+  options,
+  optionMaxLength,
+  maxOptionCount,
+  onAddOption,
+  onChangeOptionText,
+  onRemoveOption,
+}: PollOptionFieldsProps) => {
+  const canAddOption = options.length < maxOptionCount;
+
   return (
     <View style={styles.field}>
       <AppText variant="body" weight="semibold">
@@ -22,28 +34,51 @@ export const PollOptionFields = () => {
       </AppText>
 
       <View style={styles.optionList}>
-        {optionFields.map((option) => (
+        {options.map((option, index) => (
           <View key={option.id} style={styles.optionRow}>
             <View style={styles.optionInputWrap}>
               <AppInput
-                placeholder={option.placeholder}
+                placeholder={`선택지 ${index + 1}`}
                 style={styles.optionInput}
+                maxLength={optionMaxLength}
+                value={option.text}
+                onChangeText={(text) => onChangeOptionText(option.id, text)}
+                rightElement={
+                  <AppText tone="subtle" variant="caption">
+                    {option.text.length}/{optionMaxLength}
+                  </AppText>
+                }
               />
             </View>
 
-            <Pressable
-              accessibilityRole="button"
-              style={styles.optionRemoveButton}
-            >
-              <Ionicons color={theme.colors.textMuted} name="close" size={22} />
-            </Pressable>
+            {index >= 2 && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => onRemoveOption(option.id)}
+                style={styles.optionRemoveButton}
+              >
+                <Ionicons
+                  color={theme.colors.textMuted}
+                  name="close"
+                  size={22}
+                />
+              </Pressable>
+            )}
           </View>
         ))}
 
-        <Pressable accessibilityRole="button" style={styles.addOptionButton}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={!canAddOption}
+          onPress={onAddOption}
+          style={[
+            styles.addOptionButton,
+            !canAddOption && styles.disabledAddOptionButton,
+          ]}
+        >
           <Ionicons color={theme.colors.textMuted} name="add" size={20} />
           <AppText tone="muted" variant="bodySmall" weight="semibold">
-            옵션 추가
+            {canAddOption ? '옵션 추가' : '최대 4개까지'}
           </AppText>
         </Pressable>
       </View>
@@ -87,5 +122,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     minHeight: 56,
     paddingHorizontal: theme.spacing.lg,
+  },
+  disabledAddOptionButton: {
+    opacity: 0.45,
   },
 });

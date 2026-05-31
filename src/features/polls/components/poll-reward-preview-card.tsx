@@ -3,6 +3,10 @@ import { theme } from '@/constants/theme';
 import { StyleSheet, View } from 'react-native';
 
 export const PollRewardPreviewCard = () => {
+  const participationReward = 1;
+  const popularPollBonus = 2;
+  const totalReward = participationReward + popularPollBonus;
+
   return (
     <View style={styles.field}>
       <Card style={styles.rewardCard}>
@@ -13,7 +17,7 @@ export const PollRewardPreviewCard = () => {
 
           <View style={styles.rewardBadge}>
             <AppText tone="reward" variant="bodySmall" weight="bold">
-              +1P
+              +{totalReward}P
             </AppText>
           </View>
         </View>
@@ -21,10 +25,10 @@ export const PollRewardPreviewCard = () => {
         <View style={styles.rewardRows}>
           <View style={styles.rewardRow}>
             <AppText tone="muted" variant="bodySmall" weight="semibold">
-              기본 참여 보상
+              참여 시 보상
             </AppText>
             <AppText variant="bodySmall" weight="bold">
-              +1P
+              +{participationReward}P
             </AppText>
           </View>
 
@@ -33,7 +37,7 @@ export const PollRewardPreviewCard = () => {
               인기 투표 보너스
             </AppText>
             <AppText variant="bodySmall" weight="bold">
-              +2P
+              +{popularPollBonus}P
             </AppText>
           </View>
         </View>
@@ -45,7 +49,7 @@ export const PollRewardPreviewCard = () => {
             최대 획득 가능
           </AppText>
           <AppText tone="success" variant="subtitle" weight="bold">
-            +3P
+            +{totalReward}P
           </AppText>
         </View>
       </Card>
