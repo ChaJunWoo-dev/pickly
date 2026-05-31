@@ -1,15 +1,25 @@
 import { AppInput, AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 export const PollOptionFields = () => {
   const OPTION_MAX_LENGTH = 20;
+  const MAX_OPTION_COUNT = 4;
+
   const [options, setOptions] = useState([
-    { id: 'option-1', text: '', placeholder: '선택지 1' },
-    { id: 'option-2', text: '', placeholder: '선택지 2' },
+    { id: 'option-1', text: '' },
+    { id: 'option-2', text: '' },
   ]);
+  const nextOptionIdRef = useRef(3);
+
+  const createOptionId = () => {
+    const id = `option-${nextOptionIdRef.current}`;
+    nextOptionIdRef.current += 1;
+
+    return id;
+  };
 
   const handleChangeOptionText = (optionId: string, text: string) => {
     setOptions((prevOptions) =>
@@ -18,6 +28,22 @@ export const PollOptionFields = () => {
       )
     );
   };
+
+  const handleAddOption = () => {
+    setOptions((prevOptions) => {
+      if (prevOptions.length >= MAX_OPTION_COUNT) return prevOptions;
+
+      return [...prevOptions, { id: createOptionId(), text: '' }];
+    });
+  };
+
+  const handleRemoveOption = (optionId: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.filter((option) => option.id !== optionId)
+    );
+  };
+
+  const canAddOption = options.length < MAX_OPTION_COUNT;
 
   return (
     <View style={styles.field}>
@@ -30,7 +56,7 @@ export const PollOptionFields = () => {
           <View key={option.id} style={styles.optionRow}>
             <View style={styles.optionInputWrap}>
               <AppInput
-                placeholder={option.placeholder}
+                placeholder={`선택지 ${index + 1}`}
                 style={styles.optionInput}
                 maxLength={OPTION_MAX_LENGTH}
                 value={option.text}
@@ -43,9 +69,10 @@ export const PollOptionFields = () => {
               />
             </View>
 
-            {index > 2 && (
+            {index >= 2 && (
               <Pressable
                 accessibilityRole="button"
+                onPress={() => handleRemoveOption(option.id)}
                 style={styles.optionRemoveButton}
               >
                 <Ionicons
@@ -58,10 +85,18 @@ export const PollOptionFields = () => {
           </View>
         ))}
 
-        <Pressable accessibilityRole="button" style={styles.addOptionButton}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={!canAddOption}
+          onPress={handleAddOption}
+          style={[
+            styles.addOptionButton,
+            !canAddOption && styles.disabledAddOptionButton,
+          ]}
+        >
           <Ionicons color={theme.colors.textMuted} name="add" size={20} />
           <AppText tone="muted" variant="bodySmall" weight="semibold">
-            옵션 추가
+            {canAddOption ? '옵션 추가' : '최대 4개까지'}
           </AppText>
         </Pressable>
       </View>
@@ -106,5 +141,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingHorizontal: theme.spacing.lg,
   },
-  optionCount: {},
+  disabledAddOptionButton: {
+    opacity: 0.45,
+  },
 });
