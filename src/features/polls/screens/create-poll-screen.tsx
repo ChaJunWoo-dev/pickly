@@ -2,6 +2,7 @@ import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
 import { PollDeadlineSelector } from '../components/poll-deadline-selector';
@@ -9,6 +10,9 @@ import { PollOptionFields } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 
 export const CreatePollScreen = () => {
+  const QUESTION_MAX_LENGTH = 50;
+  const [question, setQuestion] = useState('');
+
   return (
     <Screen
       scroll
@@ -34,11 +38,14 @@ export const CreatePollScreen = () => {
           질문을 입력하세요
         </AppText>
         <AppInput
-          placeholder="예)오늘 점심은 뭐 먹을까?"
+          placeholder="예) 오늘 점심은 뭐 먹을까?"
           style={styles.inputField}
+          value={question}
+          maxLength={QUESTION_MAX_LENGTH}
+          onChangeText={(text) => setQuestion(text)}
         />
         <AppText tone="muted" variant="caption" style={styles.characterCount}>
-          0/50
+          {question.length}/50
         </AppText>
       </View>
 
