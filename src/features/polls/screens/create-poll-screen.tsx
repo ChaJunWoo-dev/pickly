@@ -46,10 +46,16 @@ export const CreatePollScreen = () => {
           value={question}
           maxLength={QUESTION_MAX_LENGTH}
           onChangeText={(text) => setQuestion(text)}
+          rightElement={
+            <AppText
+              tone="muted"
+              variant="caption"
+              style={styles.characterCount}
+            >
+              {question.length}/50
+            </AppText>
+          }
         />
-        <AppText tone="muted" variant="caption" style={styles.characterCount}>
-          {question.length}/50
-        </AppText>
       </View>
 
       <PollCategorySelector

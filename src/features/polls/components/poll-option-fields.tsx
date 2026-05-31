@@ -1,20 +1,24 @@
 import { AppInput, AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-const optionFields = [
-  {
-    id: 'option-1',
-    placeholder: '선택지 1',
-  },
-  {
-    id: 'option-2',
-    placeholder: '선택지 2',
-  },
-];
-
 export const PollOptionFields = () => {
+  const OPTION_MAX_LENGTH = 20;
+  const [options, setOptions] = useState([
+    { id: 'option-1', text: '', placeholder: '선택지 1' },
+    { id: 'option-2', text: '', placeholder: '선택지 2' },
+  ]);
+
+  const handleChangeOptionText = (optionId: string, text: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId ? { ...option, text } : option
+      )
+    );
+  };
+
   return (
     <View style={styles.field}>
       <AppText variant="body" weight="semibold">
@@ -22,21 +26,35 @@ export const PollOptionFields = () => {
       </AppText>
 
       <View style={styles.optionList}>
-        {optionFields.map((option) => (
+        {options.map((option, index) => (
           <View key={option.id} style={styles.optionRow}>
             <View style={styles.optionInputWrap}>
               <AppInput
                 placeholder={option.placeholder}
                 style={styles.optionInput}
+                maxLength={OPTION_MAX_LENGTH}
+                value={option.text}
+                onChangeText={(text) => handleChangeOptionText(option.id, text)}
+                rightElement={
+                  <AppText tone="subtle" variant="caption">
+                    {option.text.length}/{OPTION_MAX_LENGTH}
+                  </AppText>
+                }
               />
             </View>
 
-            <Pressable
-              accessibilityRole="button"
-              style={styles.optionRemoveButton}
-            >
-              <Ionicons color={theme.colors.textMuted} name="close" size={22} />
-            </Pressable>
+            {index > 2 && (
+              <Pressable
+                accessibilityRole="button"
+                style={styles.optionRemoveButton}
+              >
+                <Ionicons
+                  color={theme.colors.textMuted}
+                  name="close"
+                  size={22}
+                />
+              </Pressable>
+            )}
           </View>
         ))}
 
@@ -88,4 +106,5 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingHorizontal: theme.spacing.lg,
   },
+  optionCount: {},
 });
