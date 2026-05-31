@@ -5,7 +5,10 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
-import { PollDeadlineSelector } from '../components/poll-deadline-selector';
+import {
+  PollDeadlineSelector,
+  type PollDeadlineId,
+} from '../components/poll-deadline-selector';
 import { PollOptionFields } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
@@ -15,6 +18,8 @@ export const CreatePollScreen = () => {
   const [question, setQuestion] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<PollCategoryId>('food');
+  const [selectedDeadlineId, setSelectedDeadlineId] =
+    useState<PollDeadlineId>('24h');
 
   return (
     <Screen
@@ -65,7 +70,10 @@ export const CreatePollScreen = () => {
 
       <PollOptionFields />
 
-      <PollDeadlineSelector />
+      <PollDeadlineSelector
+        selectedDeadlineId={selectedDeadlineId}
+        onSelectDeadline={setSelectedDeadlineId}
+      />
 
       <PollRewardPreviewCard />
 
