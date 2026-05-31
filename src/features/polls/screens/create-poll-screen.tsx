@@ -2,24 +2,64 @@ import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
 import {
   PollDeadlineSelector,
   type PollDeadlineId,
 } from '../components/poll-deadline-selector';
-import { PollOptionFields } from '../components/poll-option-fields';
+import {
+  PollOptionFields,
+  type PollOptionInput,
+} from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
+  const OPTION_MAX_LENGTH = 20;
+  const MAX_OPTION_COUNT = 4;
+
   const [question, setQuestion] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<PollCategoryId>('food');
   const [selectedDeadlineId, setSelectedDeadlineId] =
     useState<PollDeadlineId>('24h');
+  const [options, setOptions] = useState<PollOptionInput[]>([
+    { id: 'option-1', text: '' },
+    { id: 'option-2', text: '' },
+  ]);
+  const nextOptionIdRef = useRef(3);
+
+  const createOptionId = () => {
+    const id = `option-${nextOptionIdRef.current}`;
+    nextOptionIdRef.current += 1;
+
+    return id;
+  };
+
+  const handleChangeOptionText = (optionId: string, text: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId ? { ...option, text } : option
+      )
+    );
+  };
+
+  const handleAddOption = () => {
+    setOptions((prevOptions) => {
+      if (prevOptions.length >= MAX_OPTION_COUNT) return prevOptions;
+
+      return [...prevOptions, { id: createOptionId(), text: '' }];
+    });
+  };
+
+  const handleRemoveOption = (optionId: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.filter((option) => option.id !== optionId)
+    );
+  };
 
   return (
     <Screen
@@ -68,7 +108,14 @@ export const CreatePollScreen = () => {
         onSelectCategory={setSelectedCategoryId}
       />
 
-      <PollOptionFields />
+      <PollOptionFields
+        options={options}
+        optionMaxLength={OPTION_MAX_LENGTH}
+        maxOptionCount={MAX_OPTION_COUNT}
+        onAddOption={handleAddOption}
+        onChangeOptionText={handleChangeOptionText}
+        onRemoveOption={handleRemoveOption}
+      />
 
       <PollDeadlineSelector
         selectedDeadlineId={selectedDeadlineId}
