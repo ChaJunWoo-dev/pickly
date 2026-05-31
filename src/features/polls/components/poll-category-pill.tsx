@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   getPollCategory,
   type PollCategoryId,
-} from '../data/poll-categories';
+} from '../constants/config/poll-categories';
 import { theme } from '@/constants/theme';
 
 type PollCategoryPillProps = {

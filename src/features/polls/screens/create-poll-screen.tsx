@@ -8,10 +8,13 @@ import { PollCategorySelector } from '../components/poll-category-selector';
 import { PollDeadlineSelector } from '../components/poll-deadline-selector';
 import { PollOptionFields } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
+import type { PollCategoryId } from '../constants/config/poll-categories';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
   const [question, setQuestion] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<PollCategoryId | null>(null);
 
   return (
     <Screen
@@ -49,7 +52,10 @@ export const CreatePollScreen = () => {
         </AppText>
       </View>
 
-      <PollCategorySelector />
+      <PollCategorySelector
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={setSelectedCategoryId}
+      />
 
       <PollOptionFields />
 

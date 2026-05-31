@@ -1,7 +1,7 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { PollCategoryId } from '../data/poll-categories';
+import type { PollCategoryId } from '../constants/config/poll-categories';
 import { PollCategoryPill } from './poll-category-pill';
 import { PollOptionList } from './poll-option-list';
 import { PollTimer } from './poll-timer';
