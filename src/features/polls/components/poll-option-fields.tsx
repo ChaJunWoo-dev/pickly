@@ -43,6 +43,12 @@ export const PollOptionFields = () => {
     );
   };
 
+  const handleRemoveOption = (optionId: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.filter((option) => option.id !== optionId)
+    );
+  };
+
   const canAddOption = options.length < MAX_OPTION_COUNT;
 
   return (
@@ -74,6 +80,7 @@ export const PollOptionFields = () => {
                 accessibilityRole="button"
                 onPress={() => handleRemoveOption(option.id)}
                 style={styles.optionRemoveButton}
+                onPress={() => handleRemoveOption(option.id)}
               >
                 <Ionicons
                   color={theme.colors.textMuted}
