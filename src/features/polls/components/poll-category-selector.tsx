@@ -1,6 +1,7 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import {
   pollCategories,
@@ -16,13 +17,18 @@ export const PollCategorySelector = ({
   selectedCategoryId,
   onSelectCategory,
 }: PollCategorySelectorProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const visibleCategories = isExpanded
+    ? Object.values(pollCategories)
+    : Object.values(pollCategories).slice(0, 4);
+
   return (
     <View style={styles.field}>
       <AppText variant="body" weight="semibold">
         카테고리
       </AppText>
       <Card style={styles.categoryCard}>
-        {Object.values(pollCategories).map((category) => {
+        {Object.values(visibleCategories).map((category) => {
           const isSelected = selectedCategoryId === category.id;
 
           return (
@@ -59,6 +65,19 @@ export const PollCategorySelector = ({
             </Pressable>
           );
         })}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isExpanded ? '카테고리 접기' : '카테고리 펼치기'}
+          onPress={() => setIsExpanded(!isExpanded)}
+          style={styles.expandButton}
+        >
+          <Ionicons
+            color={theme.colors.textMuted}
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+          />
+        </Pressable>
       </Card>
     </View>
   );
@@ -96,5 +115,10 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     width: 32,
+  },
+  expandButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: 5,
   },
 });
