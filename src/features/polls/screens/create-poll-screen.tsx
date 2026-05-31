@@ -14,7 +14,7 @@ export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
   const [question, setQuestion] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] =
-    useState<PollCategoryId | null>(null);
+    useState<PollCategoryId>('food');
 
   return (
     <Screen

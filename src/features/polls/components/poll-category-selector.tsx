@@ -9,7 +9,7 @@ import {
 } from '../constants/config/poll-categories';
 
 type PollCategorySelectorProps = {
-  selectedCategoryId: PollCategoryId | null;
+  selectedCategoryId: PollCategoryId;
   onSelectCategory: (categoryId: PollCategoryId) => void;
 };
 
@@ -69,7 +69,7 @@ export const PollCategorySelector = ({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={isExpanded ? '카테고리 접기' : '카테고리 펼치기'}
-          onPress={() => setIsExpanded(!isExpanded)}
+          onPress={() => setIsExpanded((prev) => !prev)}
           style={styles.expandButton}
         >
           <Ionicons
