@@ -3,7 +3,7 @@ import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
 import {
   PollDeadlineSelector,
@@ -32,6 +32,10 @@ export const CreatePollScreen = () => {
   ]);
   const nextOptionIdRef = useRef(3);
 
+  const trimmedQuestion = question.trim();
+  const filledOptions = options.filter((option) => option.text.trim());
+  const canCreatePoll = trimmedQuestion.length > 0 && filledOptions.length >= 2;
+
   const createOptionId = () => {
     const id = `option-${nextOptionIdRef.current}`;
     nextOptionIdRef.current += 1;
@@ -59,6 +63,23 @@ export const CreatePollScreen = () => {
     setOptions((prevOptions) =>
       prevOptions.filter((option) => option.id !== optionId)
     );
+  };
+
+  const handleCreatePoll = () => {
+    if (!canCreatePoll) return;
+
+    const pollPayload = {
+      categoryId: selectedCategoryId,
+      deadlineId: selectedDeadlineId,
+      question: trimmedQuestion,
+      options: filledOptions.map((option) => ({
+        id: option.id,
+        text: option.text.trim(),
+      })),
+    };
+
+    console.log('create poll payload', pollPayload);
+    Alert.alert('투표 생성 준비 완료', '입력한 내용으로 투표를 생성할 수 있어요.');
   };
 
   return (
@@ -124,7 +145,9 @@ export const CreatePollScreen = () => {
 
       <PollRewardPreviewCard />
 
-      <AppButton>투표 생성하기</AppButton>
+      <AppButton disabled={!canCreatePoll} onPress={handleCreatePoll}>
+        투표 생성하기
+      </AppButton>
     </Screen>
   );
 };
