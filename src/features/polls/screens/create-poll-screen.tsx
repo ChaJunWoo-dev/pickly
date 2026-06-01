@@ -1,5 +1,6 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -33,6 +34,7 @@ export const CreatePollScreen = () => {
   const trimmedQuestion = question.trim();
   const filledOptions = options.filter((option) => option.text.trim());
   const canCreatePoll = trimmedQuestion.length > 0 && filledOptions.length >= 2;
+  const [isCreating, setIsCreating] = useState(false);
 
   const createOptionId = () => {
     const id = `option-${nextOptionIdRef.current}`;
@@ -63,24 +65,25 @@ export const CreatePollScreen = () => {
     );
   };
 
-  const handleCreatePoll = () => {
-    if (!canCreatePoll) return;
+  const handleCreatePoll = async () => {
+    // polls insert
+    // 반환된 poll.id로 poll_options insert
+    // 위 동작을 트랜잭션
+    // 동작 동안 로딩
+    // 성공 시 상세 화면으로 이동
+    if (!canCreatePoll || isCreating) return;
 
-    const pollPayload = {
-      categoryId: selectedCategoryId,
-      deadlineId: selectedDeadlineId,
-      question: trimmedQuestion,
-      options: filledOptions.map((option) => ({
-        id: option.id,
-        text: option.text.trim(),
-      })),
-    };
+    const user = await ensureGuestSession();
 
-    console.log('create poll payload', pollPayload);
-    Alert.alert(
-      '투표 생성 준비 완료',
-      '입력한 내용으로 투표를 생성할 수 있어요.'
-    );
+    if (!user) {
+      Alert.alert('생성 실패', '게스트 로그인에 실패했어요.');
+      return;
+    }
+    try {
+    } catch {
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
