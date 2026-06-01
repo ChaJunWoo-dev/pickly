@@ -1,7 +1,9 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { supabase } from '../../../../lib/supabase';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard } from '../components/poll-card';
 import { featuredPolls } from '../data/mock-polls';
@@ -10,6 +12,16 @@ const activeFeedTab: FeedTab = 'popular';
 
 export const HomeFeedScreen = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    const init = async () => {
+      const { data, error } = await supabase.auth.signInAnonymously();
+
+      console.log('guest login', data.user?.id, error);
+    };
+
+    init();
+  }, []);
 
   const handleOpenPoll = (pollId: string) => {
     router.push({
