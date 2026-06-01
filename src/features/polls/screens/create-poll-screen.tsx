@@ -5,16 +5,14 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
-import {
-  PollDeadlineSelector,
-  type PollDeadlineId,
-} from '../components/poll-deadline-selector';
+import { PollDeadlineSelector } from '../components/poll-deadline-selector';
 import {
   PollOptionFields,
   type PollOptionInput,
 } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
+import { PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
@@ -79,7 +77,10 @@ export const CreatePollScreen = () => {
     };
 
     console.log('create poll payload', pollPayload);
-    Alert.alert('투표 생성 준비 완료', '입력한 내용으로 투표를 생성할 수 있어요.');
+    Alert.alert(
+      '투표 생성 준비 완료',
+      '입력한 내용으로 투표를 생성할 수 있어요.'
+    );
   };
 
   return (
