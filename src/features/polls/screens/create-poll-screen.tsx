@@ -68,11 +68,9 @@ export const CreatePollScreen = () => {
   };
 
   const handleCreatePoll = async () => {
-    // 반환된 poll.id로 poll_options insert
-    // 위 동작을 트랜잭션
-    // 동작 동안 로딩
-    // 성공 시 상세 화면으로 이동
     if (!canCreatePoll || isCreating) return;
+
+    setIsCreating(true);
 
     const user = await ensureGuestSession();
 
@@ -93,17 +91,24 @@ export const CreatePollScreen = () => {
         }
       );
 
-      if (pollError || !pollId) {
-        Alert.alert('생성 실패', '투표를 만들지 못했어요');
-        return;
-      }
+      if (pollError || !pollId) throw new Error();
 
       Alert.alert(
         '생성 완료',
-        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`
+        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`,
+        [
+          {
+            text: '확인',
+            onPress: () =>
+              router.replace({
+                pathname: '/poll/[id]',
+                params: { id: pollId },
+              }),
+          },
+        ]
       );
     } catch (error) {
-      Alert.alert('생성 실패', '알 수 없는 오류가 발생했어요.');
+      Alert.alert('생성 실패', '투표를 만들지 못했어요');
     } finally {
       setIsCreating(false);
     }
