@@ -3,7 +3,7 @@ import { theme } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { supabase } from '../../../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard } from '../components/poll-card';
 import { featuredPolls } from '../data/mock-polls';
