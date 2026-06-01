@@ -27,7 +27,14 @@ export const PollDetailScreen = () => {
       <View style={styles.topBar}>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+              return;
+            }
+
+            router.replace('/(tabs)');
+          }}
           style={styles.iconButton}
         >
           <Ionicons color={theme.colors.text} name="chevron-back" size={22} />

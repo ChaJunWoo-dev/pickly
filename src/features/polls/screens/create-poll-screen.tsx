@@ -1,20 +1,21 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
-import {
-  PollDeadlineSelector,
-  type PollDeadlineId,
-} from '../components/poll-deadline-selector';
+import { PollDeadlineSelector } from '../components/poll-deadline-selector';
 import {
   PollOptionFields,
   type PollOptionInput,
 } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
+import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewards';
+import { getPollExpiresAt, PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
@@ -35,6 +36,7 @@ export const CreatePollScreen = () => {
   const trimmedQuestion = question.trim();
   const filledOptions = options.filter((option) => option.text.trim());
   const canCreatePoll = trimmedQuestion.length > 0 && filledOptions.length >= 2;
+  const [isCreating, setIsCreating] = useState(false);
 
   const createOptionId = () => {
     const id = `option-${nextOptionIdRef.current}`;
@@ -65,21 +67,51 @@ export const CreatePollScreen = () => {
     );
   };
 
-  const handleCreatePoll = () => {
-    if (!canCreatePoll) return;
+  const handleCreatePoll = async () => {
+    if (!canCreatePoll || isCreating) return;
 
-    const pollPayload = {
-      categoryId: selectedCategoryId,
-      deadlineId: selectedDeadlineId,
-      question: trimmedQuestion,
-      options: filledOptions.map((option) => ({
-        id: option.id,
-        text: option.text.trim(),
-      })),
-    };
+    setIsCreating(true);
 
-    console.log('create poll payload', pollPayload);
-    Alert.alert('투표 생성 준비 완료', '입력한 내용으로 투표를 생성할 수 있어요.');
+    const user = await ensureGuestSession();
+
+    if (!user) {
+      Alert.alert('생성 실패', '게스트 로그인에 실패했어요');
+      return;
+    }
+
+    try {
+      const { data: pollId, error: pollError } = await supabase.rpc(
+        'create_poll_with_options',
+        {
+          p_title: trimmedQuestion,
+          p_category: selectedCategoryId,
+          p_reward_points: POLL_PARTICIPATION_REWARD_POINTS,
+          p_expires_at: getPollExpiresAt(selectedDeadlineId),
+          p_options: filledOptions.map((option) => option.text.trim()),
+        }
+      );
+
+      if (pollError || !pollId) throw new Error();
+
+      Alert.alert(
+        '생성 완료',
+        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`,
+        [
+          {
+            text: '확인',
+            onPress: () =>
+              router.replace({
+                pathname: '/poll/[id]',
+                params: { id: pollId },
+              }),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert('생성 실패', '투표를 만들지 못했어요');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
