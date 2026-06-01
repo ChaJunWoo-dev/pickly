@@ -14,13 +14,13 @@ import {
 } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
+import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewards';
 import { getPollExpiresAt, PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
   const OPTION_MAX_LENGTH = 20;
   const MAX_OPTION_COUNT = 4;
-  const POLL_PARTICIPATION_REWARD_POINTS = 3;
 
   const [question, setQuestion] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] =
