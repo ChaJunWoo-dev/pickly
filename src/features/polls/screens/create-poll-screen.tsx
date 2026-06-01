@@ -1,6 +1,7 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { ensureGuestSession } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -13,12 +14,13 @@ import {
 } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
-import { PollDeadlineId } from '../utils/poll-deadline';
+import { getPollExpiresAt, PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
   const QUESTION_MAX_LENGTH = 50;
   const OPTION_MAX_LENGTH = 20;
   const MAX_OPTION_COUNT = 4;
+  const POLL_PARTICIPATION_REWARD_POINTS = 3;
 
   const [question, setQuestion] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] =
@@ -66,7 +68,6 @@ export const CreatePollScreen = () => {
   };
 
   const handleCreatePoll = async () => {
-    // polls insert
     // 반환된 poll.id로 poll_options insert
     // 위 동작을 트랜잭션
     // 동작 동안 로딩
@@ -76,11 +77,33 @@ export const CreatePollScreen = () => {
     const user = await ensureGuestSession();
 
     if (!user) {
-      Alert.alert('생성 실패', '게스트 로그인에 실패했어요.');
+      Alert.alert('생성 실패', '게스트 로그인에 실패했어요');
       return;
     }
+
     try {
-    } catch {
+      const { data: pollId, error: pollError } = await supabase.rpc(
+        'create_poll_with_options',
+        {
+          p_title: trimmedQuestion,
+          p_category: selectedCategoryId,
+          p_reward_points: POLL_PARTICIPATION_REWARD_POINTS,
+          p_expires_at: getPollExpiresAt(selectedDeadlineId),
+          p_options: filledOptions.map((option) => option.text.trim()),
+        }
+      );
+
+      if (pollError || !pollId) {
+        Alert.alert('생성 실패', '투표를 만들지 못했어요');
+        return;
+      }
+
+      Alert.alert(
+        '생성 완료',
+        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`
+      );
+    } catch (error) {
+      Alert.alert('생성 실패', '알 수 없는 오류가 발생했어요.');
     } finally {
       setIsCreating(false);
     }
