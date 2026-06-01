@@ -1,6 +1,8 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard } from '../components/poll-card';
@@ -10,6 +12,16 @@ const activeFeedTab: FeedTab = 'popular';
 
 export const HomeFeedScreen = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    const initGuestSession = async () => {
+      const user = await ensureGuestSession();
+
+      console.log('guest login', user?.id);
+    };
+
+    initGuestSession();
+  }, []);
 
   const handleOpenPoll = (pollId: string) => {
     router.push({
