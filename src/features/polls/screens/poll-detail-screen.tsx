@@ -64,10 +64,7 @@ export const PollDetailScreen = () => {
 
       <View style={styles.metaRow}>
         <PollCategoryPill categoryId={poll.categoryId} />
-        <PollTimer
-          timeLeft={poll.timeLeft}
-          timeLeftSeconds={poll.timeLeftSeconds}
-        />
+        <PollTimer expiresAt={poll.expiresAt} />
       </View>
 
       <View style={styles.titleBlock}>

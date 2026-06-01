@@ -1,9 +1,10 @@
 import { AppText, Card, Screen } from '@/components';
+import { featuredPolls } from '@/features/polls/data/mock-polls';
+import { getPollTimeLeft } from '@/features/polls/utils/poll-deadline';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
-import { featuredPolls } from '@/features/polls/data/mock-polls';
 
 export const SavedPollsScreen = () => {
   return (
@@ -42,7 +43,7 @@ export const SavedPollsScreen = () => {
                   {poll.participantCount.toLocaleString()}명 참여
                 </AppText>
                 <AppText tone="muted" variant="caption" weight="semibold">
-                  {poll.timeLeft} 남음
+                  {getPollTimeLeft(poll.expiresAt).timeLeft} 남음
                 </AppText>
               </View>
             </Card>

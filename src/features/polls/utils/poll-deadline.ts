@@ -14,3 +14,20 @@ export const getPollExpiresAt = (deadlineId: PollDeadlineId) => {
 
   return expiresAt.toISOString();
 };
+
+export const getPollTimeLeft = (expiresAt: string, now = Date.now()) => {
+  const timeLeftSeconds = Math.max(
+    0,
+    Math.floor((new Date(expiresAt).getTime() - now) / 1000)
+  );
+  const hours = Math.floor(timeLeftSeconds / 3600);
+  const minutes = Math.floor((timeLeftSeconds % 3600) / 60);
+  const seconds = timeLeftSeconds % 60;
+
+  return {
+    timeLeft: [hours, minutes, seconds]
+      .map((value) => String(value).padStart(2, '0'))
+      .join(':'),
+    timeLeftSeconds,
+  };
+};
