@@ -1,26 +1,67 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { ensureGuestSession } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
-import { PollCard } from '../components/poll-card';
-import { featuredPolls } from '../data/mock-polls';
+import { PollCard, type PollCardData } from '../components/poll-card';
+import {
+  mapPollFeedRowToCardData,
+  type PollFeedRow,
+} from '../utils/poll-mappers';
 
 const activeFeedTab: FeedTab = 'popular';
 
 export const HomeFeedScreen = () => {
   const router = useRouter();
+  const [polls, setPolls] = useState<PollCardData[]>([]);
+  const [isLoadingPolls, setIsLoadingPolls] = useState(true);
 
   useEffect(() => {
-    const initGuestSession = async () => {
-      const user = await ensureGuestSession();
+    const loadPolls = async () => {
+      setIsLoadingPolls(true);
 
-      console.log('guest login', user?.id);
+      try {
+        await ensureGuestSession();
+
+        const { data, error } = await supabase
+          .from('polls')
+          .select(
+            `
+              id,
+              title,
+              category,
+              reward_points,
+              expires_at,
+              poll_options (
+                id,
+                label,
+                image_url,
+                sort_order
+              ),
+              poll_votes (
+                id,
+                option_id
+              )
+            `
+          )
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setPolls(((data ?? []) as PollFeedRow[]).map(mapPollFeedRowToCardData));
+      } catch (error) {
+        console.error('load polls failed', error);
+      } finally {
+        setIsLoadingPolls(false);
+      }
     };
 
-    initGuestSession();
+    loadPolls();
   }, []);
 
   const handleOpenPoll = (pollId: string) => {
@@ -60,7 +101,19 @@ export const HomeFeedScreen = () => {
       <FeedTabs value={activeFeedTab} />
 
       <View style={styles.feed}>
-        {featuredPolls.map((poll) => (
+        {isLoadingPolls ? (
+          <AppText tone="muted" variant="bodySmall">
+            투표를 불러오는 중이에요.
+          </AppText>
+        ) : null}
+
+        {!isLoadingPolls && polls.length === 0 ? (
+          <AppText tone="muted" variant="bodySmall">
+            아직 만들어진 투표가 없어요.
+          </AppText>
+        ) : null}
+
+        {polls.map((poll) => (
           <PollCard
             key={poll.id}
             onOpen={handleOpenPoll}
