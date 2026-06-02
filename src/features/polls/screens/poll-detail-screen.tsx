@@ -1,21 +1,82 @@
 import { AppText, Avatar, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
 import { PollCommentPreviewCard } from '../components/poll-comment-preview-card';
 import { PollDetailActionSheet } from '../components/poll-detail-action-sheet';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
-import { featuredPolls } from '../data/mock-polls';
+import { mapPollFeedRowToCardData, PollFeedRow } from '../utils/poll-mappers';
 
 export const PollDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
-  const poll = featuredPolls.find((item) => item.id === id) ?? featuredPolls[0];
+  const [poll, setPoll] = useState<PollCardData | null>(null);
+  const [isLoadingPoll, setIsLoadingPoll] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const loadPoll = async () => {
+      setIsLoadingPoll(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('polls')
+          .select(
+            `
+          id,
+          title,
+          category,
+          reward_points,
+          expires_at,
+          is_closed,
+          poll_options (
+            id,
+            label,
+            image_url,
+            sort_order
+          ),
+          poll_votes (id, option_id)`
+          )
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
+        setPoll(mapPollFeedRowToCardData(data as PollFeedRow));
+      } catch (error) {
+        setPoll(null);
+      } finally {
+        setIsLoadingPoll(false);
+      }
+    };
+
+    loadPoll();
+  }, [id]);
+
+  if (isLoadingPoll) {
+    return (
+      <Screen>
+        <AppText>투표를 불러오는 중이에요</AppText>
+      </Screen>
+    );
+  }
+
+  if (!poll) {
+    return (
+      <Screen>
+        <AppText>투표를 찾을 수 없어요</AppText>
+      </Screen>
+    );
+  }
+
   const selectedOptionId = poll.options[0]?.id;
 
   return (
