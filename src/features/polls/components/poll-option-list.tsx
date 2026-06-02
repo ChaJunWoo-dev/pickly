@@ -7,6 +7,8 @@ type PollOptionListProps = {
   pollId: string;
   options: PollOptionPreview[];
   disabled?: boolean;
+  selectedOptionId?: string;
+  showResults?: boolean;
   onVote?: (pollId: string, optionId: string) => void;
 };
 
@@ -14,6 +16,8 @@ export const PollOptionList = ({
   disabled = false,
   pollId,
   options,
+  selectedOptionId,
+  showResults = false,
   onVote,
 }: PollOptionListProps) => {
   const hasImageOptions = options.some((option) => option.imageUrl);
@@ -40,7 +44,12 @@ export const PollOptionList = ({
               pressed && styles.optionPressed,
             ]}
           >
-            <View style={styles.radio} />
+            <View
+              style={[
+                styles.radio,
+                option.id === selectedOptionId && styles.radioSelected,
+              ]}
+            />
             {option.imageUrl ? (
               <Image
                 resizeMode="contain"
@@ -73,16 +82,31 @@ export const PollOptionList = ({
               />
             ) : null}
             <View style={styles.optionBody}>
-              <View
-                style={[styles.optionFill, { width: `${option.percent}%` }]}
-              />
+              {showResults ? (
+                <View
+                  style={[styles.optionFill, { width: `${option.percent}%` }]}
+                />
+              ) : null}
               <View style={styles.optionContent}>
-                <AppText variant="bodySmall" weight="semibold">
-                  {option.label}
-                </AppText>
-                <AppText tone="muted" variant="caption" weight="semibold">
-                  {option.percent}%
-                </AppText>
+                <View style={styles.optionLabel}>
+                  {!showResults ? (
+                    <View
+                      style={[
+                        styles.inlineRadio,
+                        option.id === selectedOptionId &&
+                          styles.radioSelected,
+                      ]}
+                    />
+                  ) : null}
+                  <AppText variant="bodySmall" weight="semibold">
+                    {option.label}
+                  </AppText>
+                </View>
+                {showResults ? (
+                  <AppText tone="muted" variant="caption" weight="semibold">
+                    {option.percent}%
+                  </AppText>
+                ) : null}
               </View>
             </View>
           </Pressable>
@@ -133,6 +157,11 @@ const styles = StyleSheet.create({
     minHeight: 46,
     paddingHorizontal: theme.spacing.md,
   },
+  optionLabel: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
   optionThumbnail: {
     borderRadius: theme.radius.xs,
     height: 44,
@@ -163,5 +192,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: theme.spacing.sm,
     width: 18,
+  },
+  inlineRadio: {
+    borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius.full,
+    borderWidth: 2,
+    height: 18,
+    width: 18,
+  },
+  radioSelected: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
 });
