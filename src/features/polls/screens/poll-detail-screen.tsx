@@ -63,7 +63,6 @@ export const PollDetailScreen = () => {
 
       setPoll(mapPollFeedRowToCardData(data as PollFeedRow, currentUserId));
     } catch (error) {
-      console.error('load poll failed', error);
       setPoll(null);
     } finally {
       setIsLoadingPoll(false);
@@ -93,8 +92,6 @@ export const PollDetailScreen = () => {
 
       await loadPoll(user.id);
     } catch (error) {
-      console.error(error);
-
       if (
         typeof error === 'object' &&
         error !== null &&

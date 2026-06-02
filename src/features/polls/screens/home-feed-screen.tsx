@@ -2,8 +2,8 @@ import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard, type PollCardData } from '../components/poll-card';
@@ -19,55 +19,55 @@ export const HomeFeedScreen = () => {
   const [polls, setPolls] = useState<PollCardData[]>([]);
   const [isLoadingPolls, setIsLoadingPolls] = useState(true);
 
-  useEffect(() => {
-    const loadPolls = async () => {
-      setIsLoadingPolls(true);
+  const loadPolls = useCallback(async () => {
+    setIsLoadingPolls(true);
 
-      try {
-        await ensureGuestSession();
+    try {
+      await ensureGuestSession();
 
-        const { data, error } = await supabase
-          .from('polls')
-          .select(
-            `
-              id,
-              title,
-              category,
-              reward_points,
-              expires_at,
-              is_closed,
-              poll_options (
-                id,
-                label,
-                image_url,
-                sort_order
-              ),
-              poll_votes (
-                id,
-                option_id
-              )
-            `
-          )
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('polls')
+        .select(
+          `
+        id,
+        title,
+        category,
+        reward_points,
+        expires_at,
+        is_closed,
+        poll_options (
+          id,
+          label,
+          image_url,
+          sort_order
+        ),
+        poll_votes (
+          id,
+          option_id
+        )
+      `
+        )
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          throw error;
-        }
+      if (error) throw error;
 
-        setPolls(
-          ((data ?? []) as PollFeedRow[]).map((poll) =>
-            mapPollFeedRowToCardData(poll)
-          )
-        );
-      } catch (error) {
-        console.error('load polls failed', error);
-      } finally {
-        setIsLoadingPolls(false);
-      }
-    };
-
-    loadPolls();
+      setPolls(
+        ((data ?? []) as PollFeedRow[]).map((poll) =>
+          mapPollFeedRowToCardData(poll)
+        )
+      );
+    } catch (error) {
+      console.error('load polls failed', error);
+    } finally {
+      setIsLoadingPolls(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPolls();
+    }, [loadPolls])
+  );
 
   const handleOpenPoll = (pollId: string) => {
     router.push({
