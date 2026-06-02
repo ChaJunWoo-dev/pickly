@@ -1,17 +1,23 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
+import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { PollCardData } from '../components/poll-card';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import type { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
 import { PollCommentPreviewCard } from '../components/poll-comment-preview-card';
 import { PollDetailActionSheet } from '../components/poll-detail-action-sheet';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
-import { mapPollFeedRowToCardData, PollFeedRow } from '../utils/poll-mappers';
+import { isPollExpired } from '../utils/poll-deadline';
+import {
+  mapPollFeedRowToCardData,
+  type PollFeedRow,
+} from '../utils/poll-mappers';
 
 export const PollDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -19,18 +25,18 @@ export const PollDetailScreen = () => {
   const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
   const [poll, setPoll] = useState<PollCardData | null>(null);
   const [isLoadingPoll, setIsLoadingPoll] = useState(true);
+  const [isVoting, setIsVoting] = useState(false);
 
-  useEffect(() => {
+  const loadPoll = async (currentUserId?: string) => {
     if (!id) return;
 
-    const loadPoll = async () => {
-      setIsLoadingPoll(true);
+    setIsLoadingPoll(true);
 
-      try {
-        const { data, error } = await supabase
-          .from('polls')
-          .select(
-            `
+    try {
+      const { data, error } = await supabase
+        .from('polls')
+        .select(
+          `
           id,
           title,
           category,
@@ -43,28 +49,87 @@ export const PollDetailScreen = () => {
             image_url,
             sort_order
           ),
-          poll_votes (id, option_id)`
+          poll_votes (
+            id,
+            option_id,
+            user_id
           )
-          .eq('id', id)
-          .single();
+        `
+        )
+        .eq('id', id)
+        .single();
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setPoll(mapPollFeedRowToCardData(data as PollFeedRow));
-      } catch (error) {
-        setPoll(null);
-      } finally {
-        setIsLoadingPoll(false);
+      setPoll(mapPollFeedRowToCardData(data as PollFeedRow, currentUserId));
+    } catch (error) {
+      console.error('load poll failed', error);
+      setPoll(null);
+    } finally {
+      setIsLoadingPoll(false);
+    }
+  };
+
+  const handleVote = async (optionId: string) => {
+    if (!poll || poll.isClosed || isPollExpired(poll.expiresAt) || isVoting) {
+      return;
+    }
+
+    setIsVoting(true);
+
+    try {
+      const user = await ensureGuestSession();
+
+      if (!user) {
+        throw new Error('Guest session is missing.');
       }
+
+      const { error } = await supabase.rpc('submit_poll_vote', {
+        p_poll_id: poll.id,
+        p_option_id: optionId,
+      });
+
+      if (error) throw error;
+
+      await loadPoll(user.id);
+    } catch (error) {
+      console.error(error);
+
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === POSTGRES_UNIQUE_VIOLATION_CODE
+      ) {
+        Alert.alert(
+          '이미 참여한 투표예요',
+          '한 번 참여한 투표는 변경할 수 없어요.'
+        );
+        return;
+      }
+
+      Alert.alert('투표 실패', '투표를 저장하지 못했어요.');
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!id) return;
+
+    const initPoll = async () => {
+      const user = await ensureGuestSession();
+
+      await loadPoll(user?.id);
     };
 
-    loadPoll();
+    void initPoll();
   }, [id]);
 
   if (isLoadingPoll) {
     return (
       <Screen>
-        <AppText>투표를 불러오는 중이에요</AppText>
+        <AppText>투표를 불러오는 중이에요.</AppText>
       </Screen>
     );
   }
@@ -72,12 +137,13 @@ export const PollDetailScreen = () => {
   if (!poll) {
     return (
       <Screen>
-        <AppText>투표를 찾을 수 없어요</AppText>
+        <AppText>투표를 찾을 수 없어요.</AppText>
       </Screen>
     );
   }
 
-  const selectedOptionId: string | null = null;
+  const selectedOptionId = poll.selectedOptionId ?? null;
+  const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
 
   return (
     <Screen
@@ -148,9 +214,13 @@ export const PollDetailScreen = () => {
             <Pressable
               key={option.id}
               accessibilityRole="button"
+              accessibilityState={{ disabled: isPollClosed || isVoting }}
+              disabled={isPollClosed || isVoting}
+              onPress={() => handleVote(option.id)}
               style={[
                 styles.voteOption,
-                option.id === selectedOptionId && styles.voteOptionActive,
+                isSelected && styles.voteOptionActive,
+                (isPollClosed || isVoting) && styles.voteOptionDisabled,
               ]}
             >
               <View
@@ -226,14 +296,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.md,
   },
-  avatarStack: {
-    flexDirection: 'row',
-  },
-  avatarWrap: {
-    borderColor: theme.colors.surface,
-    borderRadius: theme.radius.full,
-    borderWidth: 2,
-  },
   voteOptions: {
     gap: theme.spacing.sm,
   },
@@ -251,6 +313,9 @@ const styles = StyleSheet.create({
   voteOptionActive: {
     backgroundColor: theme.colors.primarySoft,
     borderColor: theme.colors.primaryStrong,
+  },
+  voteOptionDisabled: {
+    opacity: 0.55,
   },
   checkCircle: {
     alignItems: 'center',
