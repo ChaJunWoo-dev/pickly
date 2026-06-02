@@ -6,10 +6,12 @@ import type { PollOptionPreview } from './poll-card';
 type PollOptionListProps = {
   pollId: string;
   options: PollOptionPreview[];
+  disabled?: boolean;
   onVote?: (pollId: string, optionId: string) => void;
 };
 
 export const PollOptionList = ({
+  disabled = false,
   pollId,
   options,
   onVote,
@@ -29,9 +31,12 @@ export const PollOptionList = ({
           <Pressable
             key={option.id}
             accessibilityRole="button"
+            accessibilityState={{ disabled }}
+            disabled={disabled}
             onPress={() => onVote?.(pollId, option.id)}
             style={({ pressed }) => [
               styles.imageOption,
+              disabled && styles.optionDisabled,
               pressed && styles.optionPressed,
             ]}
           >
@@ -51,9 +56,12 @@ export const PollOptionList = ({
           <Pressable
             key={option.id}
             accessibilityRole="button"
+            accessibilityState={{ disabled }}
+            disabled={disabled}
             onPress={() => onVote?.(pollId, option.id)}
             style={({ pressed }) => [
               styles.option,
+              disabled && styles.optionDisabled,
               pressed && styles.optionPressed,
             ]}
           >
@@ -102,6 +110,9 @@ const styles = StyleSheet.create({
   },
   optionPressed: {
     opacity: 0.78,
+  },
+  optionDisabled: {
+    opacity: 0.55,
   },
   optionFill: {
     backgroundColor: theme.colors.primarySoft,

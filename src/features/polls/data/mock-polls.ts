@@ -24,6 +24,7 @@ export const featuredPolls: PollCardData[] = [
     rewardPoints: 12,
     participantCount: 1248,
     expiresAt: new Date(Date.now() + 9273 * 1000).toISOString(),
+    isClosed: false,
   },
   {
     id: 'weekend-plan',
@@ -37,6 +38,7 @@ export const featuredPolls: PollCardData[] = [
     participantCount: 903,
     expiresAt: new Date(Date.now() + 18728 * 1000).toISOString(),
     hasVoted: true,
+    isClosed: false,
   },
   {
     id: 'new-feature',
@@ -68,5 +70,6 @@ export const featuredPolls: PollCardData[] = [
     rewardPoints: 20,
     participantCount: 2311,
     expiresAt: new Date(Date.now() + 103691 * 1000).toISOString(),
+    isClosed: false,
   },
 ];
