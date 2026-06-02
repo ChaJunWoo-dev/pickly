@@ -1,4 +1,4 @@
-import { AppText, Avatar, Screen } from '@/components';
+import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -77,7 +77,7 @@ export const PollDetailScreen = () => {
     );
   }
 
-  const selectedOptionId = poll.options[0]?.id;
+  const selectedOptionId: string | null = null;
 
   return (
     <Screen
@@ -132,22 +132,9 @@ export const PollDetailScreen = () => {
         <AppText style={styles.question} variant="title" weight="bold">
           {poll.question}
         </AppText>
-        <AppText tone="muted" variant="bodySmall" weight="semibold">
-          익명 투표
-        </AppText>
       </View>
 
       <View style={styles.participants}>
-        <View style={styles.avatarStack}>
-          {['민서', '준호', '하은', '지우', '도윤'].map((name, index) => (
-            <View
-              key={name}
-              style={[styles.avatarWrap, { marginLeft: index ? -8 : 0 }]}
-            >
-              <Avatar name={name} size="sm" />
-            </View>
-          ))}
-        </View>
         <AppText tone="muted" variant="caption" weight="semibold">
           지금 {poll.participantCount.toLocaleString()}명 참여중
         </AppText>
@@ -161,7 +148,10 @@ export const PollDetailScreen = () => {
             <Pressable
               key={option.id}
               accessibilityRole="button"
-              style={[styles.voteOption, isSelected && styles.voteOptionActive]}
+              style={[
+                styles.voteOption,
+                option.id === selectedOptionId && styles.voteOptionActive,
+              ]}
             >
               <View
                 style={[
