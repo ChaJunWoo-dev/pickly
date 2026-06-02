@@ -2,6 +2,7 @@ import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { PollCategoryId } from '../constants/config/poll-categories';
+import { isPollExpired } from '../utils/poll-deadline';
 import { PollCategoryPill } from './poll-category-pill';
 import { PollOptionList } from './poll-option-list';
 import { PollTimer } from './poll-timer';
@@ -22,6 +23,8 @@ export type PollCardData = {
   participantCount: number;
   expiresAt: string;
   hasVoted?: boolean;
+  isClosed: boolean;
+  selectedOptionId?: string;
 };
 
 type PollCardProps = {
@@ -31,6 +34,8 @@ type PollCardProps = {
 };
 
 export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
+  const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
+
   return (
     <Card elevated style={styles.card}>
       <View style={styles.header}>
@@ -63,7 +68,12 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
         </View>
       </Pressable>
 
-      <PollOptionList onVote={onVote} options={poll.options} pollId={poll.id} />
+      <PollOptionList
+        disabled={isPollClosed}
+        onVote={onVote}
+        options={poll.options}
+        pollId={poll.id}
+      />
     </Card>
   );
 };

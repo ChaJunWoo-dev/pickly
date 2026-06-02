@@ -35,6 +35,7 @@ export const HomeFeedScreen = () => {
               category,
               reward_points,
               expires_at,
+              is_closed,
               poll_options (
                 id,
                 label,
@@ -53,7 +54,11 @@ export const HomeFeedScreen = () => {
           throw error;
         }
 
-        setPolls(((data ?? []) as PollFeedRow[]).map(mapPollFeedRowToCardData));
+        setPolls(
+          ((data ?? []) as PollFeedRow[]).map((poll) =>
+            mapPollFeedRowToCardData(poll)
+          )
+        );
       } catch (error) {
         console.error('load polls failed', error);
       } finally {
