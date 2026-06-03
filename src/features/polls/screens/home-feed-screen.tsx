@@ -15,14 +15,13 @@ import {
   type PollFeedRow,
 } from '../utils/poll-mappers';
 
-const activeFeedTab: FeedTab = 'popular';
-
 export const HomeFeedScreen = () => {
   const router = useRouter();
   const isFocused = useIsFocused();
   const [polls, setPolls] = useState<PollCardData[]>([]);
   const [isLoadingPolls, setIsLoadingPolls] = useState(true);
   const [votingPollId, setVotingPollId] = useState<string | null>(null);
+  const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('popular');
 
   const loadPolls = useCallback(async () => {
     setIsLoadingPolls(true);
@@ -55,21 +54,30 @@ export const HomeFeedScreen = () => {
         )
         .eq('is_closed', false)
         .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
+        .order(activeFeedTab === 'closingSoon' ? 'expires_at' : 'created_at', {
+          ascending: activeFeedTab === 'closingSoon',
+        });
 
       if (error) throw error;
 
+      const pollRows = (data ?? []) as PollFeedRow[];
+
+      const sortedPollRows =
+        activeFeedTab === 'popular'
+          ? [...pollRows].sort(
+              (a, b) => b.poll_votes.length - a.poll_votes.length
+            )
+          : pollRows;
+
       setPolls(
-        ((data ?? []) as PollFeedRow[]).map((poll) =>
-          mapPollFeedRowToCardData(poll, user?.id)
-        )
+        sortedPollRows.map((poll) => mapPollFeedRowToCardData(poll, user?.id))
       );
     } catch (error) {
       console.error('load polls failed', error);
     } finally {
       setIsLoadingPolls(false);
     }
-  }, []);
+  }, [activeFeedTab]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -157,7 +165,7 @@ export const HomeFeedScreen = () => {
         </View>
       </View>
 
-      <FeedTabs value={activeFeedTab} />
+      <FeedTabs value={activeFeedTab} onChange={setActiveFeedTab} />
 
       <View style={styles.feed}>
         {isLoadingPolls ? (

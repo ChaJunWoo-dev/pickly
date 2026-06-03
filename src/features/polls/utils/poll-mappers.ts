@@ -1,4 +1,4 @@
-import type { PollCardData } from '../components/poll-card';
+﻿import type { PollCardData } from '../components/poll-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 import { isPollExpired } from './poll-deadline';
 
@@ -20,6 +20,7 @@ export type PollFeedRow = {
   title: string;
   category: PollCategoryId;
   reward_points: number;
+  created_at: string;
   expires_at: string;
   is_closed: boolean;
   poll_options: PollOptionRow[];
@@ -64,3 +65,4 @@ export const mapPollFeedRowToCardData = (
       }),
   };
 };
+
