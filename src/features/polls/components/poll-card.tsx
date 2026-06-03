@@ -35,6 +35,7 @@ type PollCardProps = {
 
 export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
   const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
+  const isVoteDisabled = isPollClosed || poll.hasVoted;
 
   return (
     <Card elevated style={styles.card}>
@@ -69,10 +70,12 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
       </Pressable>
 
       <PollOptionList
-        disabled={isPollClosed}
+        disabled={isVoteDisabled}
         onVote={onVote}
         options={poll.options}
         pollId={poll.id}
+        selectedOptionId={poll.selectedOptionId}
+        showResults={isPollClosed || Boolean(poll.hasVoted)}
       />
     </Card>
   );

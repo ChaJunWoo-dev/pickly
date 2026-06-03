@@ -1,12 +1,15 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { ensureGuestSession } from '@/lib/auth';
+import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
 import { supabase } from '@/lib/supabase';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard, type PollCardData } from '../components/poll-card';
+import { isPollExpired } from '../utils/poll-deadline';
 import {
   mapPollFeedRowToCardData,
   type PollFeedRow,
@@ -16,58 +19,63 @@ const activeFeedTab: FeedTab = 'popular';
 
 export const HomeFeedScreen = () => {
   const router = useRouter();
+  const isFocused = useIsFocused();
   const [polls, setPolls] = useState<PollCardData[]>([]);
   const [isLoadingPolls, setIsLoadingPolls] = useState(true);
+  const [votingPollId, setVotingPollId] = useState<string | null>(null);
+
+  const loadPolls = useCallback(async () => {
+    setIsLoadingPolls(true);
+
+    try {
+      const user = await ensureGuestSession();
+
+      const { data, error } = await supabase
+        .from('polls')
+        .select(
+          `
+        id,
+        title,
+        category,
+        reward_points,
+        expires_at,
+        is_closed,
+        poll_options (
+          id,
+          label,
+          image_url,
+          sort_order
+        ),
+        poll_votes (
+          id,
+          option_id,
+          user_id
+        )
+      `
+        )
+        .eq('is_closed', false)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setPolls(
+        ((data ?? []) as PollFeedRow[]).map((poll) =>
+          mapPollFeedRowToCardData(poll, user?.id)
+        )
+      );
+    } catch (error) {
+      console.error('load polls failed', error);
+    } finally {
+      setIsLoadingPolls(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const loadPolls = async () => {
-      setIsLoadingPolls(true);
+    if (!isFocused) return;
 
-      try {
-        await ensureGuestSession();
-
-        const { data, error } = await supabase
-          .from('polls')
-          .select(
-            `
-              id,
-              title,
-              category,
-              reward_points,
-              expires_at,
-              is_closed,
-              poll_options (
-                id,
-                label,
-                image_url,
-                sort_order
-              ),
-              poll_votes (
-                id,
-                option_id
-              )
-            `
-          )
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setPolls(
-          ((data ?? []) as PollFeedRow[]).map((poll) =>
-            mapPollFeedRowToCardData(poll)
-          )
-        );
-      } catch (error) {
-        console.error('load polls failed', error);
-      } finally {
-        setIsLoadingPolls(false);
-      }
-    };
-
-    loadPolls();
-  }, []);
+    void loadPolls();
+  }, [isFocused, loadPolls]);
 
   const handleOpenPoll = (pollId: string) => {
     router.push({
@@ -76,8 +84,54 @@ export const HomeFeedScreen = () => {
     });
   };
 
-  const handleVote = (pollId: string, optionId: string) => {
-    console.log('vote poll', pollId, optionId);
+  const handleVote = async (pollId: string, optionId: string) => {
+    const poll = polls.find((item) => item.id === pollId);
+
+    if (
+      !poll ||
+      poll.hasVoted ||
+      poll.isClosed ||
+      isPollExpired(poll.expiresAt) ||
+      votingPollId
+    ) {
+      return;
+    }
+
+    setVotingPollId(pollId);
+
+    try {
+      const user = await ensureGuestSession();
+
+      if (!user) {
+        throw new Error('Guest session is missing.');
+      }
+
+      const { error } = await supabase.rpc('submit_poll_vote', {
+        p_poll_id: pollId,
+        p_option_id: optionId,
+      });
+
+      if (error) throw error;
+
+      await loadPolls();
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === POSTGRES_UNIQUE_VIOLATION_CODE
+      ) {
+        Alert.alert(
+          '이미 참여한 투표예요',
+          '한 번 참여한 투표는 변경할 수 없어요.'
+        );
+        return;
+      }
+
+      Alert.alert('투표 실패', '투표를 저장하지 못했어요.');
+    } finally {
+      setVotingPollId(null);
+    }
   };
 
   return (
