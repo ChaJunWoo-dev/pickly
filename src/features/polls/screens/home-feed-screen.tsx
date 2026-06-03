@@ -9,11 +9,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { FeedTabs, type FeedTab } from '../components/feed-tabs';
 import { PollCard, type PollCardData } from '../components/poll-card';
+import { isPollExpired } from '../utils/poll-deadline';
 import {
   mapPollFeedRowToCardData,
   type PollFeedRow,
 } from '../utils/poll-mappers';
-import { isPollExpired } from '../utils/poll-deadline';
 
 const activeFeedTab: FeedTab = 'popular';
 
@@ -53,6 +53,8 @@ export const HomeFeedScreen = () => {
         )
       `
         )
+        .eq('is_closed', false)
+        .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
