@@ -1,9 +1,17 @@
 import { AppText, Card, EmptyState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { getPollCategory } from '@/features/polls/constants/config/poll-categories';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
+import { getPollTimeLeft, isPollExpired } from '@/features/polls/utils/poll-deadline';
+import {
+  mapPollFeedRowToCardData,
+  type PollFeedRow,
+} from '@/features/polls/utils/poll-mappers';
 
 const participationTabs = [
   { id: 'all', label: '전체' },
@@ -11,36 +19,74 @@ const participationTabs = [
   { id: 'closed', label: '마감' },
 ] as const;
 
-const participatedPolls = [
-  {
-    id: 'lunch-menu',
-    category: '음식',
-    question: '오늘 점심은 뭐 먹을까?',
-    selectedOption: '돈카츠 정식',
-    leadingOption: '돈카츠 정식',
-    leadingPercent: 58,
-    participants: 1248,
-    reward: '+1P',
-    status: '진행중',
-    time: '2시간 남음',
-  },
-  {
-    id: 'weekend-plan',
-    category: '라이프',
-    question: '이번 주말엔 어떤 시간이 더 좋아?',
-    selectedOption: '집에서 푹 쉬기',
-    leadingOption: '집에서 푹 쉬기',
-    leadingPercent: 53,
-    participants: 903,
-    reward: '+1P',
-    status: '진행중',
-    time: '5시간 남음',
-  },
-];
+type ParticipationTabId = (typeof participationTabs)[number]['id'];
+type ParticipationStatus = '진행중' | '마감';
+
+type ParticipationVoteRow = {
+  id: string;
+  option_id: string;
+  created_at: string;
+  polls: PollFeedRow | PollFeedRow[] | null;
+};
+
+type ParticipatedPoll = {
+  id: string;
+  category: string;
+  question: string;
+  selectedOption: string;
+  leadingOption: string;
+  leadingPercent: number;
+  participants: number;
+  reward: string;
+  status: ParticipationStatus;
+  time: string;
+};
+
+const getPollRow = (polls: ParticipationVoteRow['polls']) => {
+  return Array.isArray(polls) ? polls[0] : polls;
+};
+
+const mapVoteRowToParticipatedPoll = (
+  vote: ParticipationVoteRow,
+  userId: string
+): ParticipatedPoll | null => {
+  const pollRow = getPollRow(vote.polls);
+
+  if (!pollRow) {
+    return null;
+  }
+
+  const poll = mapPollFeedRowToCardData(pollRow, userId);
+  const selectedOption =
+    poll.options.find((option) => option.id === vote.option_id)?.label ??
+    '선택지 없음';
+  const leadingOption = [...poll.options].sort(
+    (a, b) => b.percent - a.percent
+  )[0];
+  const isClosed = poll.isClosed || isPollExpired(poll.expiresAt);
+
+  return {
+    id: poll.id,
+    category: getPollCategory(poll.categoryId).label,
+    question: poll.question,
+    selectedOption,
+    leadingOption: leadingOption?.label ?? '집계 전',
+    leadingPercent: leadingOption?.percent ?? 0,
+    participants: poll.participantCount,
+    reward: `+${poll.rewardPoints}P`,
+    status: isClosed ? '마감' : '진행중',
+    time: isClosed ? '마감' : `${getPollTimeLeft(poll.expiresAt).timeLeft} 남음`,
+  };
+};
 
 export const ParticipationHistoryScreen = () => {
-  const [selectedTabId, setSelectedTabId] =
-    useState<(typeof participationTabs)[number]['id']>('all');
+  const [selectedTabId, setSelectedTabId] = useState<ParticipationTabId>('all');
+  const [participatedPolls, setParticipatedPolls] = useState<
+    ParticipatedPoll[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const visiblePolls =
     selectedTabId === 'all'
       ? participatedPolls
@@ -53,6 +99,73 @@ export const ParticipationHistoryScreen = () => {
   const totalReward = participatedPolls.reduce((sum, poll) => {
     return sum + Number(poll.reward.replace(/[+P]/g, ''));
   }, 0);
+
+  useEffect(() => {
+    const getParticipationHistory = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const user = await ensureGuestSession();
+
+        if (!user) {
+          setParticipatedPolls([]);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('poll_votes')
+          .select(
+            `
+            id,
+            option_id,
+            created_at,
+            polls (
+              id,
+              title,
+              category,
+              reward_points,
+              expires_at,
+              is_closed,
+              poll_options (
+                id,
+                label,
+                image_url,
+                sort_order
+              ),
+              poll_votes (
+                id,
+                option_id,
+                user_id
+              )
+            )
+          `
+          )
+          .eq('user_id', user.id)
+          .order('expires_at', {
+            referencedTable: 'polls',
+            ascending: true,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        const nextParticipatedPolls = ((data ?? []) as ParticipationVoteRow[])
+          .map((vote) => mapVoteRowToParticipatedPoll(vote, user.id))
+          .filter((poll): poll is ParticipatedPoll => Boolean(poll));
+
+        setParticipatedPolls(nextParticipatedPolls);
+      } catch (error) {
+        console.error('load participation history failed', error);
+        setErrorMessage('참여한 투표를 불러오지 못했어요.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void getParticipationHistory();
+  }, []);
 
   return (
     <Screen
@@ -105,7 +218,29 @@ export const ParticipationHistoryScreen = () => {
         })}
       </View>
 
-      {visiblePolls.length === 0 ? (
+      {isLoading ? (
+        <AppText tone="muted" variant="bodySmall">
+          참여한 투표를 불러오는 중이에요.
+        </AppText>
+      ) : null}
+
+      {!isLoading && errorMessage ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description="잠시 후 다시 시도해 주세요."
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="alert-circle-outline"
+                size={34}
+              />
+            }
+            title={errorMessage}
+          />
+        </Card>
+      ) : null}
+
+      {!isLoading && !errorMessage && visiblePolls.length === 0 ? (
         <Card style={styles.emptyCard}>
           <EmptyState
             description={`${selectedTab?.label ?? '선택한'} 참여 투표가 생기면 여기에 모아둘게요.`}
@@ -119,7 +254,9 @@ export const ParticipationHistoryScreen = () => {
             title={`아직 ${selectedTab?.label ?? '선택한'} 참여 투표가 없어요`}
           />
         </Card>
-      ) : (
+      ) : null}
+
+      {!isLoading && !errorMessage && visiblePolls.length > 0 ? (
         <View style={styles.list}>
           {visiblePolls.map((poll) => {
             const isClosed = poll.status === '마감';
@@ -213,7 +350,7 @@ export const ParticipationHistoryScreen = () => {
             );
           })}
         </View>
-      )}
+      ) : null}
     </Screen>
   );
 };
