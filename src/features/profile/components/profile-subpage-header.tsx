@@ -15,6 +15,7 @@ export const ProfileSubpageHeader = ({ title }: ProfileSubpageHeaderProps) => {
     <View style={styles.header}>
       <Pressable
         accessibilityRole="button"
+        hitSlop={8}
         onPress={() => router.back()}
         style={styles.iconButton}
       >
@@ -42,6 +43,7 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     width: 36,
+    zIndex: 1,
   },
   title: {
     left: 0,
