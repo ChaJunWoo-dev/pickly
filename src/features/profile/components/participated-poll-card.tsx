@@ -6,13 +6,17 @@ import type { ParticipatedPoll } from '../utils/participation-history';
 
 type ParticipatedPollCardProps = {
   poll: ParticipatedPoll;
+  onPress: () => void;
 };
 
-export const ParticipatedPollCard = ({ poll }: ParticipatedPollCardProps) => {
+export const ParticipatedPollCard = ({
+  poll,
+  onPress,
+}: ParticipatedPollCardProps) => {
   const isClosed = poll.status === '마감';
 
   return (
-    <Pressable accessibilityRole="button">
+    <Pressable accessibilityRole="button" onPress={onPress}>
       <Card style={styles.pollCard}>
         <View style={styles.pollHeader}>
           <View style={styles.categoryPill}>
@@ -21,7 +25,9 @@ export const ParticipatedPollCard = ({ poll }: ParticipatedPollCardProps) => {
             </AppText>
           </View>
 
-          <View style={[styles.statusPill, isClosed && styles.closedStatusPill]}>
+          <View
+            style={[styles.statusPill, isClosed && styles.closedStatusPill]}
+          >
             <Ionicons
               color={
                 isClosed ? theme.colors.textMuted : theme.colors.primaryStrong

@@ -1,6 +1,7 @@
 import { AppText, Card, EmptyState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getParticipationHistory } from '../api/get-participation-history';
@@ -112,7 +113,11 @@ export const ParticipationHistoryScreen = () => {
       {!isLoading && !errorMessage && visiblePolls.length > 0 ? (
         <View style={styles.list}>
           {visiblePolls.map((poll) => (
-            <ParticipatedPollCard key={poll.id} poll={poll} />
+            <ParticipatedPollCard
+              key={poll.id}
+              poll={poll}
+              onPress={() => router.push(`/poll/${poll.id}`)}
+            />
           ))}
         </View>
       ) : null}
