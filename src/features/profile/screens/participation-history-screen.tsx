@@ -1,4 +1,4 @@
-import { AppText, Card, Screen } from '@/components';
+import { AppText, Card, EmptyState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -36,18 +36,6 @@ const participatedPolls = [
     status: '진행중',
     time: '5시간 남음',
   },
-  {
-    id: 'next-feature',
-    category: '서비스 피드백',
-    question: '다음에 먼저 보고 싶은 기능은?',
-    selectedOption: '포인트 상점',
-    leadingOption: '포인트 상점',
-    leadingPercent: 64,
-    participants: 2311,
-    reward: '+2P',
-    status: '마감',
-    time: '어제 마감',
-  },
 ];
 
 export const ParticipationHistoryScreen = () => {
@@ -61,6 +49,7 @@ export const ParticipationHistoryScreen = () => {
             ? poll.status === '진행중'
             : poll.status === '마감';
         });
+  const selectedTab = participationTabs.find((tab) => tab.id === selectedTabId);
   const totalReward = participatedPolls.reduce((sum, poll) => {
     return sum + Number(poll.reward.replace(/[+P]/g, ''));
   }, 0);
@@ -116,99 +105,115 @@ export const ParticipationHistoryScreen = () => {
         })}
       </View>
 
-      <View style={styles.list}>
-        {visiblePolls.map((poll) => {
-          const isClosed = poll.status === '마감';
+      {visiblePolls.length === 0 ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description={`${selectedTab?.label ?? '선택한'} 참여 투표가 생기면 여기에 모아둘게요.`}
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="file-tray-outline"
+                size={34}
+              />
+            }
+            title={`아직 ${selectedTab?.label ?? '선택한'} 참여 투표가 없어요`}
+          />
+        </Card>
+      ) : (
+        <View style={styles.list}>
+          {visiblePolls.map((poll) => {
+            const isClosed = poll.status === '마감';
 
-          return (
-            <Pressable key={poll.id} accessibilityRole="button">
-              <Card style={styles.pollCard}>
-                <View style={styles.pollHeader}>
-                  <View style={styles.categoryPill}>
-                    <AppText tone="accent" variant="caption" weight="bold">
-                      {poll.category}
-                    </AppText>
-                  </View>
+            return (
+              <Pressable key={poll.id} accessibilityRole="button">
+                <Card style={styles.pollCard}>
+                  <View style={styles.pollHeader}>
+                    <View style={styles.categoryPill}>
+                      <AppText tone="accent" variant="caption" weight="bold">
+                        {poll.category}
+                      </AppText>
+                    </View>
 
-                  <View
-                    style={[
-                      styles.statusPill,
-                      isClosed && styles.closedStatusPill,
-                    ]}
-                  >
-                    <Ionicons
-                      color={
-                        isClosed
-                          ? theme.colors.textMuted
-                          : theme.colors.primaryStrong
-                      }
-                      name={isClosed ? 'lock-closed-outline' : 'time-outline'}
-                      size={13}
-                    />
-                    <AppText
-                      tone={isClosed ? 'muted' : 'success'}
-                      variant="caption"
-                      weight="semibold"
-                    >
-                      {poll.time}
-                    </AppText>
-                  </View>
-                </View>
-
-                <AppText variant="body" weight="bold">
-                  {poll.question}
-                </AppText>
-
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <AppText tone="muted" variant="caption" weight="semibold">
-                      내 선택
-                    </AppText>
-                    <AppText variant="caption" weight="bold">
-                      {poll.selectedOption}
-                    </AppText>
-                  </View>
-
-                  <View style={styles.rewardPill}>
-                    <AppText tone="reward" variant="caption" weight="bold">
-                      {poll.reward}
-                    </AppText>
-                  </View>
-                </View>
-
-                <View style={styles.resultBlock}>
-                  <View style={styles.resultHeader}>
-                    <AppText tone="muted" variant="caption" weight="semibold">
-                      현재 1위
-                    </AppText>
-                    <AppText variant="caption" weight="bold">
-                      {poll.leadingPercent}%
-                    </AppText>
-                  </View>
-
-                  <View style={styles.progressTrack}>
                     <View
                       style={[
-                        styles.progressFill,
-                        { width: `${poll.leadingPercent}%` },
+                        styles.statusPill,
+                        isClosed && styles.closedStatusPill,
                       ]}
-                    />
+                    >
+                      <Ionicons
+                        color={
+                          isClosed
+                            ? theme.colors.textMuted
+                            : theme.colors.primaryStrong
+                        }
+                        name={isClosed ? 'lock-closed-outline' : 'time-outline'}
+                        size={13}
+                      />
+                      <AppText
+                        tone={isClosed ? 'muted' : 'success'}
+                        variant="caption"
+                        weight="semibold"
+                      >
+                        {poll.time}
+                      </AppText>
+                    </View>
                   </View>
 
-                  <View style={styles.resultFooter}>
-                    <AppText variant="caption" weight="semibold">
-                      {poll.leadingOption}
-                    </AppText>
-                    <AppText tone="muted" variant="caption">
-                      {poll.participants.toLocaleString()}명 참여
-                    </AppText>
+                  <AppText variant="body" weight="bold">
+                    {poll.question}
+                  </AppText>
+
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                      <AppText tone="muted" variant="caption" weight="semibold">
+                        내 선택
+                      </AppText>
+                      <AppText variant="caption" weight="bold">
+                        {poll.selectedOption}
+                      </AppText>
+                    </View>
+
+                    <View style={styles.rewardPill}>
+                      <AppText tone="reward" variant="caption" weight="bold">
+                        {poll.reward}
+                      </AppText>
+                    </View>
                   </View>
-                </View>
-              </Card>
-            </Pressable>
-          );
-        })}
-      </View>
+
+                  <View style={styles.resultBlock}>
+                    <View style={styles.resultHeader}>
+                      <AppText tone="muted" variant="caption" weight="semibold">
+                        현재 1위
+                      </AppText>
+                      <AppText variant="caption" weight="bold">
+                        {poll.leadingPercent}%
+                      </AppText>
+                    </View>
+
+                    <View style={styles.progressTrack}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${poll.leadingPercent}%` },
+                        ]}
+                      />
+                    </View>
+
+                    <View style={styles.resultFooter}>
+                      <AppText variant="caption" weight="semibold">
+                        {poll.leadingOption}
+                      </AppText>
+                      <AppText tone="muted" variant="caption">
+                        {poll.participants.toLocaleString()}명 참여
+                      </AppText>
+                    </View>
+                  </View>
+                </Card>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
     </Screen>
   );
 };
@@ -247,11 +252,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: theme.radius.full,
     flex: 1,
-    minHeight: 34,
     justifyContent: 'center',
+    minHeight: 34,
   },
   selectedTabButton: {
     backgroundColor: theme.colors.primarySoft,
+  },
+  emptyCard: {
+    paddingVertical: theme.spacing.xl,
   },
   list: {
     gap: theme.spacing.md,
