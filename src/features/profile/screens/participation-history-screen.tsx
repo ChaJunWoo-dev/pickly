@@ -1,44 +1,77 @@
 import { AppText, Card, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
 
-const historyItems = [
+const participationTabs = [
+  { id: 'all', label: '전체' },
+  { id: 'active', label: '진행중' },
+  { id: 'closed', label: '마감' },
+] as const;
+
+const participatedPolls = [
   {
-    id: 'history-1',
-    title: '오늘 하나만 산다면?',
-    choice: '운동화',
-    result: '58%',
+    id: 'lunch-menu',
+    category: '음식',
+    question: '오늘 점심은 뭐 먹을까?',
+    selectedOption: '돈카츠 정식',
+    leadingOption: '돈카츠 정식',
+    leadingPercent: 58,
+    participants: 1248,
     reward: '+1P',
-    time: '오늘 09:41',
+    status: '진행중',
+    time: '2시간 남음',
   },
   {
-    id: 'history-2',
-    title: '이번 주말엔 어떤 시간이 더 좋아?',
-    choice: '집에서 푹 쉬기',
-    result: '53%',
+    id: 'weekend-plan',
+    category: '라이프',
+    question: '이번 주말엔 어떤 시간이 더 좋아?',
+    selectedOption: '집에서 푹 쉬기',
+    leadingOption: '집에서 푹 쉬기',
+    leadingPercent: 53,
+    participants: 903,
     reward: '+1P',
-    time: '어제 21:15',
+    status: '진행중',
+    time: '5시간 남음',
   },
   {
-    id: 'history-3',
-    title: '주말에 뭐 볼까?',
-    choice: '드라마 정주행',
-    result: '55%',
+    id: 'next-feature',
+    category: '서비스 피드백',
+    question: '다음에 먼저 보고 싶은 기능은?',
+    selectedOption: '포인트 상점',
+    leadingOption: '포인트 상점',
+    leadingPercent: 64,
+    participants: 2311,
     reward: '+2P',
-    time: '어제 18:22',
+    status: '마감',
+    time: '어제 마감',
   },
 ];
 
 export const ParticipationHistoryScreen = () => {
+  const [selectedTabId, setSelectedTabId] =
+    useState<(typeof participationTabs)[number]['id']>('all');
+  const visiblePolls =
+    selectedTabId === 'all'
+      ? participatedPolls
+      : participatedPolls.filter((poll) => {
+          return selectedTabId === 'active'
+            ? poll.status === '진행중'
+            : poll.status === '마감';
+        });
+  const totalReward = participatedPolls.reduce((sum, poll) => {
+    return sum + Number(poll.reward.replace(/[+P]/g, ''));
+  }, 0);
+
   return (
     <Screen
       scroll
       contentContainerStyle={styles.content}
       scrollViewProps={{ bounces: false }}
     >
-      <ProfileSubpageHeader title="참여 기록" />
+      <ProfileSubpageHeader title="참여한 투표" />
 
       <Card style={styles.summaryCard}>
         <View style={styles.summaryIcon}>
@@ -48,56 +81,133 @@ export const ParticipationHistoryScreen = () => {
             size={24}
           />
         </View>
+
         <View style={styles.summaryCopy}>
           <AppText variant="bodySmall" weight="bold">
-            이번 달 18개 투표에 참여했어요
+            이번 달 {participatedPolls.length}개 투표에 참여했어요
           </AppText>
           <AppText tone="muted" variant="caption">
-            참여 기록은 로그인 후 기기 변경에도 유지돼요.
+            받은 보상은 총 +{totalReward}P예요.
           </AppText>
         </View>
       </Card>
 
+      <View style={styles.tabList}>
+        {participationTabs.map((tab) => {
+          const isSelected = tab.id === selectedTabId;
+
+          return (
+            <Pressable
+              key={tab.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              onPress={() => setSelectedTabId(tab.id)}
+              style={[styles.tabButton, isSelected && styles.selectedTabButton]}
+            >
+              <AppText
+                tone={isSelected ? 'primary' : 'muted'}
+                variant="caption"
+                weight="semibold"
+              >
+                {tab.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <View style={styles.list}>
-        {historyItems.map((item) => (
-          <Card key={item.id} style={styles.historyCard}>
-            <View style={styles.historyHeader}>
-              <AppText style={styles.historyTitle} variant="bodySmall" weight="bold">
-                {item.title}
-              </AppText>
-              <AppText tone="muted" variant="caption">
-                {item.time}
-              </AppText>
-            </View>
+        {visiblePolls.map((poll) => {
+          const isClosed = poll.status === '마감';
 
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                내 선택
-              </AppText>
-              <AppText variant="caption" weight="bold">
-                {item.choice}
-              </AppText>
-            </View>
+          return (
+            <Pressable key={poll.id} accessibilityRole="button">
+              <Card style={styles.pollCard}>
+                <View style={styles.pollHeader}>
+                  <View style={styles.categoryPill}>
+                    <AppText tone="accent" variant="caption" weight="bold">
+                      {poll.category}
+                    </AppText>
+                  </View>
 
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                결과 비율
-              </AppText>
-              <AppText variant="caption" weight="bold">
-                {item.result}
-              </AppText>
-            </View>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      isClosed && styles.closedStatusPill,
+                    ]}
+                  >
+                    <Ionicons
+                      color={
+                        isClosed
+                          ? theme.colors.textMuted
+                          : theme.colors.primaryStrong
+                      }
+                      name={isClosed ? 'lock-closed-outline' : 'time-outline'}
+                      size={13}
+                    />
+                    <AppText
+                      tone={isClosed ? 'muted' : 'success'}
+                      variant="caption"
+                      weight="semibold"
+                    >
+                      {poll.time}
+                    </AppText>
+                  </View>
+                </View>
 
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                받은 포인트
-              </AppText>
-              <AppText tone="success" variant="caption" weight="bold">
-                {item.reward}
-              </AppText>
-            </View>
-          </Card>
-        ))}
+                <AppText variant="body" weight="bold">
+                  {poll.question}
+                </AppText>
+
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <AppText tone="muted" variant="caption" weight="semibold">
+                      내 선택
+                    </AppText>
+                    <AppText variant="caption" weight="bold">
+                      {poll.selectedOption}
+                    </AppText>
+                  </View>
+
+                  <View style={styles.rewardPill}>
+                    <AppText tone="reward" variant="caption" weight="bold">
+                      {poll.reward}
+                    </AppText>
+                  </View>
+                </View>
+
+                <View style={styles.resultBlock}>
+                  <View style={styles.resultHeader}>
+                    <AppText tone="muted" variant="caption" weight="semibold">
+                      현재 1위
+                    </AppText>
+                    <AppText variant="caption" weight="bold">
+                      {poll.leadingPercent}%
+                    </AppText>
+                  </View>
+
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${poll.leadingPercent}%` },
+                      ]}
+                    />
+                  </View>
+
+                  <View style={styles.resultFooter}>
+                    <AppText variant="caption" weight="semibold">
+                      {poll.leadingOption}
+                    </AppText>
+                    <AppText tone="muted" variant="caption">
+                      {poll.participants.toLocaleString()}명 참여
+                    </AppText>
+                  </View>
+                </View>
+              </Card>
+            </Pressable>
+          );
+        })}
       </View>
     </Screen>
   );
@@ -125,21 +235,92 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: theme.spacing.xs,
   },
+  tabList: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: theme.spacing.xxs,
+  },
+  tabButton: {
+    alignItems: 'center',
+    borderRadius: theme.radius.full,
+    flex: 1,
+    minHeight: 34,
+    justifyContent: 'center',
+  },
+  selectedTabButton: {
+    backgroundColor: theme.colors.primarySoft,
+  },
   list: {
     gap: theme.spacing.md,
   },
-  historyCard: {
+  pollCard: {
     gap: theme.spacing.md,
   },
-  historyHeader: {
+  pollHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  categoryPill: {
+    backgroundColor: theme.colors.secondarySoft,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  statusPill: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.full,
+    flexDirection: 'row',
+    gap: theme.spacing.xxs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  closedStatusPill: {
+    backgroundColor: theme.colors.surfaceMuted,
+  },
+  metaRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
     justifyContent: 'space-between',
   },
-  historyTitle: {
+  metaItem: {
     flex: 1,
+    gap: theme.spacing.xxs,
   },
-  historyMeta: {
+  rewardPill: {
+    backgroundColor: theme.colors.rewardSoft,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  resultBlock: {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radius.sm,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+  },
+  resultHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressTrack: {
+    backgroundColor: theme.colors.border,
+    borderRadius: theme.radius.full,
+    height: 6,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    backgroundColor: theme.colors.primaryStrong,
+    borderRadius: theme.radius.full,
+    height: '100%',
+  },
+  resultFooter: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
