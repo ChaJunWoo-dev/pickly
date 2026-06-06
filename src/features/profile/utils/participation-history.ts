@@ -35,6 +35,7 @@ export type ParticipatedPoll = {
   reward: string;
   status: ParticipationStatus;
   time: string;
+  expiresAt: string;
 };
 
 const getPollRow = (polls: ParticipationVoteRow['polls']) => {
@@ -71,7 +72,26 @@ export const mapVoteRowToParticipatedPoll = (
     reward: `+${poll.rewardPoints}P`,
     status: isClosed ? '마감' : '진행중',
     time: isClosed ? '마감' : `${getPollTimeLeft(poll.expiresAt).timeLeft} 남음`,
+    expiresAt: poll.expiresAt,
   };
+};
+
+const getDeadlineTime = (poll: ParticipatedPoll) => {
+  return new Date(poll.expiresAt).getTime();
+};
+
+const sortParticipatedPolls = (polls: ParticipatedPoll[]) => {
+  return [...polls].sort((a, b) => {
+    if (a.status !== b.status) {
+      return a.status === '진행중' ? -1 : 1;
+    }
+
+    if (a.status === '마감') {
+      return getDeadlineTime(b) - getDeadlineTime(a);
+    }
+
+    return getDeadlineTime(a) - getDeadlineTime(b);
+  });
 };
 
 export const getVisibleParticipatedPolls = (
@@ -79,12 +99,14 @@ export const getVisibleParticipatedPolls = (
   tabId: ParticipationTabId
 ) => {
   if (tabId === 'all') {
-    return polls;
+    return sortParticipatedPolls(polls);
   }
 
-  return polls.filter((poll) => {
+  const visiblePolls = polls.filter((poll) => {
     return tabId === 'active' ? poll.status === '진행중' : poll.status === '마감';
   });
+
+  return sortParticipatedPolls(visiblePolls);
 };
 
 export const getTotalParticipationReward = (polls: ParticipatedPoll[]) => {
