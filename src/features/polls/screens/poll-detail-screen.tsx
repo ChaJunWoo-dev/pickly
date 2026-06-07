@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
+import { getIsPollSaved } from '../api/poll-saves';
 import { submitPollVote } from '../api/submit-poll-vote';
 import type { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
@@ -22,20 +23,29 @@ export const PollDetailScreen = () => {
   const [poll, setPoll] = useState<PollCardData | null>(null);
   const [isLoadingPoll, setIsLoadingPoll] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSavingPoll, setIsSavingPoll] = useState(false);
 
   const loadPoll = async () => {
     if (!id) return;
 
     setIsLoadingPoll(true);
+    setIsSavingPoll(true);
 
     try {
-      const nextPoll = await getPollDetail(id);
+      const [nextPoll, nextIsSaved] = await Promise.all([
+        getPollDetail(id),
+        getIsPollSaved(id),
+      ]);
 
       setPoll(nextPoll);
+      setIsSaved(nextIsSaved);
     } catch (error) {
       setPoll(null);
+      setIsSaved(false);
     } finally {
       setIsLoadingPoll(false);
+      setIsSavingPoll(false);
     }
   };
 
@@ -120,8 +130,8 @@ export const PollDetailScreen = () => {
         <View style={styles.topActions}>
           <Pressable accessibilityRole="button" style={styles.iconButton}>
             <Ionicons
-              color={theme.colors.text}
-              name="bookmark-outline"
+              color={isSaved ? theme.colors.primary : theme.colors.text}
+              name={isSaved ? 'bookmark' : 'bookmark-outline'}
               size={20}
             />
           </Pressable>
