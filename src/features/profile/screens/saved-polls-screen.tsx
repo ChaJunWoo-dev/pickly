@@ -16,7 +16,7 @@ const SavedPollsLoading = () => {
   return (
     <Card style={styles.emptyCard}>
       <AppText align="center" tone="muted" variant="bodySmall">
-        저장한 투표를 불러오는 중이에요.
+        저장한 투표를 불러오는 중이에요
       </AppText>
     </Card>
   );
@@ -36,9 +36,8 @@ export const SavedPollsScreen = () => {
       const nextSavedPolls = await getSavedPolls();
 
       setSavedPolls(nextSavedPolls);
-    } catch (error) {
-      console.error('load saved polls failed', error);
-      setErrorMessage('저장한 투표를 불러오지 못했어요.');
+    } catch {
+      setErrorMessage('저장한 투표를 불러오지 못했어요');
     } finally {
       setIsLoadingSavedPolls(false);
     }
@@ -70,7 +69,7 @@ export const SavedPollsScreen = () => {
           저장한 투표 {savedPolls.length}개
         </AppText>
         <AppText tone="muted" variant="caption">
-          관심 있는 투표를 다시 확인할 수 있어요.
+          관심 있는 투표를 다시 확인할 수 있어요
         </AppText>
       </View>
 
@@ -79,7 +78,7 @@ export const SavedPollsScreen = () => {
       {!isLoadingSavedPolls && errorMessage ? (
         <Card style={styles.emptyCard}>
           <EmptyState
-            description="잠시 후 다시 시도해 주세요."
+            description="잠시 후 다시 시도해 주세요"
             icon={
               <Ionicons
                 color={theme.colors.textSubtle}
@@ -95,7 +94,7 @@ export const SavedPollsScreen = () => {
       {!isLoadingSavedPolls && !errorMessage && savedPolls.length === 0 ? (
         <Card style={styles.emptyCard}>
           <EmptyState
-            description="관심 있는 투표의 북마크를 누르면 여기에 모아둘게요."
+            description="관심 있는 투표의 북마크를 누르면 여기에 모아둘게요"
             icon={
               <Ionicons
                 color={theme.colors.textSubtle}

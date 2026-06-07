@@ -1,6 +1,9 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
+import {
+  hasErrorCode,
+  POSTGRES_UNIQUE_VIOLATION_CODE,
+} from '@/lib/database-errors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -41,7 +44,7 @@ export const PollDetailScreen = () => {
 
       setPoll(nextPoll);
       setIsSaved(nextIsSaved);
-    } catch (error) {
+    } catch {
       setPoll(null);
       setIsSaved(false);
     } finally {
@@ -58,9 +61,8 @@ export const PollDetailScreen = () => {
     try {
       const nextIsSaved = await togglePollSave(poll.id, isSaved);
       setIsSaved(nextIsSaved);
-    } catch (error) {
-      console.error(error);
-      Alert.alert('저장 실패', '변경에 실패했어요');
+    } catch {
+      Alert.alert('저장 실패', '저장 상태를 변경하지 못했어요');
     } finally {
       setIsSavingPoll(false);
     }
@@ -87,20 +89,15 @@ export const PollDetailScreen = () => {
 
       await loadPoll();
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === POSTGRES_UNIQUE_VIOLATION_CODE
-      ) {
+      if (hasErrorCode(error, POSTGRES_UNIQUE_VIOLATION_CODE)) {
         Alert.alert(
           '이미 참여한 투표예요',
-          '한 번 참여한 투표는 변경할 수 없어요.'
+          '한 번 참여한 투표는 변경할 수 없어요'
         );
         return;
       }
 
-      Alert.alert('투표 실패', '투표를 저장하지 못했어요.');
+      Alert.alert('투표 실패', '투표를 저장하지 못했어요');
     } finally {
       setIsVoting(false);
     }
@@ -115,7 +112,7 @@ export const PollDetailScreen = () => {
   if (isLoadingPoll) {
     return (
       <Screen>
-        <AppText>투표를 불러오는 중이에요.</AppText>
+        <AppText>투표를 불러오는 중이에요</AppText>
       </Screen>
     );
   }
@@ -123,7 +120,7 @@ export const PollDetailScreen = () => {
   if (!poll) {
     return (
       <Screen>
-        <AppText>투표를 찾을 수 없어요.</AppText>
+        <AppText>투표를 찾을 수 없어요</AppText>
       </Screen>
     );
   }

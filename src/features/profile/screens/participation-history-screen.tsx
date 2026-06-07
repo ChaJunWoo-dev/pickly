@@ -41,9 +41,8 @@ export const ParticipationHistoryScreen = () => {
         const nextParticipatedPolls = await getParticipationHistory();
 
         setParticipatedPolls(nextParticipatedPolls);
-      } catch (error) {
-        console.error('load participation history failed', error);
-        setErrorMessage('참여한 투표를 불러오지 못했어요.');
+      } catch {
+        setErrorMessage('참여한 투표를 불러오지 못했어요');
       } finally {
         setIsLoading(false);
       }
@@ -72,14 +71,14 @@ export const ParticipationHistoryScreen = () => {
 
       {isLoading ? (
         <AppText tone="muted" variant="bodySmall">
-          참여한 투표를 불러오는 중이에요.
+          참여한 투표를 불러오는 중이에요
         </AppText>
       ) : null}
 
       {!isLoading && errorMessage ? (
         <Card style={styles.emptyCard}>
           <EmptyState
-            description="잠시 후 다시 시도해 주세요."
+            description="잠시 후 다시 시도해 주세요"
             icon={
               <Ionicons
                 color={theme.colors.textSubtle}
@@ -97,7 +96,7 @@ export const ParticipationHistoryScreen = () => {
           <EmptyState
             description={`${
               selectedTab?.label ?? '선택한'
-            } 참여 투표가 생기면 여기에 모아둘게요.`}
+            } 참여 투표가 생기면 여기에 모아둘게요`}
             icon={
               <Ionicons
                 color={theme.colors.textSubtle}
