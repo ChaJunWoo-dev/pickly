@@ -1,12 +1,62 @@
-import { AppText, Card, Screen } from '@/components';
-import { featuredPolls } from '@/features/polls/data/mock-polls';
-import { getPollTimeLeft } from '@/features/polls/utils/poll-deadline';
+import { AppText, Card, EmptyState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { getSavedPolls } from '@/features/polls/api/poll-saves';
+import {
+  PollCard,
+  type PollCardData,
+} from '@/features/polls/components/poll-card';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
 
+const SavedPollsLoading = () => {
+  return (
+    <Card style={styles.emptyCard}>
+      <AppText align="center" tone="muted" variant="bodySmall">
+        저장한 투표를 불러오는 중이에요.
+      </AppText>
+    </Card>
+  );
+};
+
 export const SavedPollsScreen = () => {
+  const isFocused = useIsFocused();
+  const [savedPolls, setSavedPolls] = useState<PollCardData[]>([]);
+  const [isLoadingSavedPolls, setIsLoadingSavedPolls] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadSavedPolls = useCallback(async () => {
+    setIsLoadingSavedPolls(true);
+    setErrorMessage(null);
+
+    try {
+      const nextSavedPolls = await getSavedPolls();
+
+      setSavedPolls(nextSavedPolls);
+    } catch (error) {
+      console.error('load saved polls failed', error);
+      setErrorMessage('저장한 투표를 불러오지 못했어요.');
+    } finally {
+      setIsLoadingSavedPolls(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isFocused) return;
+
+    void loadSavedPolls();
+  }, [isFocused, loadSavedPolls]);
+
+  const handleOpenPoll = (pollId: string) => {
+    router.push({
+      pathname: '/poll/[id]',
+      params: { id: pollId },
+    });
+  };
+
   return (
     <Screen
       scroll
@@ -17,39 +67,54 @@ export const SavedPollsScreen = () => {
 
       <View style={styles.summary}>
         <AppText variant="bodySmall" weight="semibold">
-          저장한 투표 {featuredPolls.length}개
+          저장한 투표 {savedPolls.length}개
         </AppText>
         <AppText tone="muted" variant="caption">
           관심 있는 투표를 다시 확인할 수 있어요.
         </AppText>
       </View>
 
-      <View style={styles.list}>
-        {featuredPolls.map((poll) => (
-          <Pressable key={poll.id} accessibilityRole="button">
-            <Card style={styles.pollCard}>
-              <View style={styles.pollHeader}>
-                <AppText variant="bodySmall" weight="bold">
-                  {poll.question}
-                </AppText>
-                <Ionicons
-                  color={theme.colors.primaryStrong}
-                  name="bookmark"
-                  size={18}
-                />
-              </View>
-              <View style={styles.pollMeta}>
-                <AppText tone="muted" variant="caption" weight="semibold">
-                  {poll.participantCount.toLocaleString()}명 참여
-                </AppText>
-                <AppText tone="muted" variant="caption" weight="semibold">
-                  {getPollTimeLeft(poll.expiresAt).timeLeft} 남음
-                </AppText>
-              </View>
-            </Card>
-          </Pressable>
-        ))}
-      </View>
+      {isLoadingSavedPolls ? <SavedPollsLoading /> : null}
+
+      {!isLoadingSavedPolls && errorMessage ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description="잠시 후 다시 시도해 주세요."
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="alert-circle-outline"
+                size={34}
+              />
+            }
+            title={errorMessage}
+          />
+        </Card>
+      ) : null}
+
+      {!isLoadingSavedPolls && !errorMessage && savedPolls.length === 0 ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description="관심 있는 투표의 북마크를 누르면 여기에 모아둘게요."
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="bookmark-outline"
+                size={34}
+              />
+            }
+            title="아직 저장한 투표가 없어요"
+          />
+        </Card>
+      ) : null}
+
+      {!isLoadingSavedPolls && !errorMessage && savedPolls.length > 0 ? (
+        <View style={styles.list}>
+          {savedPolls.map((poll) => (
+            <PollCard key={poll.id} onOpen={handleOpenPoll} poll={poll} />
+          ))}
+        </View>
+      ) : null}
     </Screen>
   );
 };
@@ -62,21 +127,10 @@ const styles = StyleSheet.create({
   summary: {
     gap: theme.spacing.xs,
   },
+  emptyCard: {
+    paddingVertical: theme.spacing.xl,
+  },
   list: {
-    gap: theme.spacing.md,
-  },
-  pollCard: {
-    gap: theme.spacing.md,
-  },
-  pollHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    justifyContent: 'space-between',
-  },
-  pollMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: theme.spacing.lg,
   },
 });
