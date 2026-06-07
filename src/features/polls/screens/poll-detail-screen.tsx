@@ -1,10 +1,9 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
 import { getIsPollSaved, togglePollSave } from '../api/poll-saves';
 import { submitPollVote } from '../api/submit-poll-vote';
@@ -12,6 +11,8 @@ import type { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
 import { PollCommentPreviewCard } from '../components/poll-comment-preview-card';
 import { PollDetailActionSheet } from '../components/poll-detail-action-sheet';
+import { PollDetailOptionList } from '../components/poll-detail-option-list';
+import { PollDetailTopBar } from '../components/poll-detail-top-bar';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
 import { isPollExpired } from '../utils/poll-deadline';
@@ -63,6 +64,15 @@ export const PollDetailScreen = () => {
     } finally {
       setIsSavingPoll(false);
     }
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/(tabs)');
   };
 
   const handleVote = async (optionId: string) => {
@@ -127,48 +137,13 @@ export const PollDetailScreen = () => {
       contentContainerStyle={styles.content}
       scrollViewProps={{ bounces: false }}
     >
-      <View style={styles.topBar}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-              return;
-            }
-
-            router.replace('/(tabs)');
-          }}
-          style={styles.iconButton}
-        >
-          <Ionicons color={theme.colors.text} name="chevron-back" size={22} />
-        </Pressable>
-
-        <View style={styles.topActions}>
-          <Pressable
-            accessibilityRole="button"
-            disabled={isSavingPoll}
-            style={[styles.iconButton, isSavingPoll && styles.iconButtonMuted]}
-            onPress={handleToggleSave}
-          >
-            <Ionicons
-              color={isSaved ? theme.colors.primary : theme.colors.text}
-              name={isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={20}
-            />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setIsActionSheetVisible(true)}
-            style={styles.iconButton}
-          >
-            <Ionicons
-              color={theme.colors.text}
-              name="ellipsis-horizontal"
-              size={20}
-            />
-          </Pressable>
-        </View>
-      </View>
+      <PollDetailTopBar
+        isSaved={isSaved}
+        isSavingPoll={isSavingPoll}
+        onBack={handleBack}
+        onOpenActions={() => setIsActionSheetVisible(true)}
+        onToggleSave={handleToggleSave}
+      />
 
       <View style={styles.metaRow}>
         <PollCategoryPill categoryId={poll.categoryId} />
@@ -187,44 +162,13 @@ export const PollDetailScreen = () => {
         </AppText>
       </View>
 
-      <View style={styles.voteOptions}>
-        {poll.options.slice(0, 2).map((option) => {
-          const isSelected = option.id === selectedOptionId;
-
-          return (
-            <Pressable
-              key={option.id}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: isPollClosed || isVoting }}
-              disabled={isPollClosed || isVoting}
-              onPress={() => handleVote(option.id)}
-              style={[
-                styles.voteOption,
-                isSelected && styles.voteOptionActive,
-                (isPollClosed || isVoting) && styles.voteOptionDisabled,
-              ]}
-            >
-              <View
-                style={[
-                  styles.checkCircle,
-                  isSelected && styles.checkCircleActive,
-                ]}
-              >
-                {isSelected ? (
-                  <Ionicons
-                    color={theme.colors.inverseText}
-                    name="checkmark"
-                    size={14}
-                  />
-                ) : null}
-              </View>
-              <AppText variant="bodySmall" weight="semibold">
-                {option.label}
-              </AppText>
-            </Pressable>
-          );
-        })}
-      </View>
+      <PollDetailOptionList
+        disabled={isPollClosed}
+        isVoting={isVoting}
+        onVote={handleVote}
+        options={poll.options}
+        selectedOptionId={selectedOptionId}
+      />
 
       <PollResultCard
         options={poll.options}
@@ -246,24 +190,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xxxl,
   },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  topActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  iconButton: {
-    alignItems: 'center',
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  iconButtonMuted: {
-    opacity: 0.55,
-  },
   metaRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -279,39 +205,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  voteOptions: {
-    gap: theme.spacing.sm,
-  },
-  voteOption: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: 52,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  voteOptionActive: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryStrong,
-  },
-  voteOptionDisabled: {
-    opacity: 0.55,
-  },
-  checkCircle: {
-    alignItems: 'center',
-    borderColor: theme.colors.borderStrong,
-    borderRadius: theme.radius.full,
-    borderWidth: 1,
-    height: 22,
-    justifyContent: 'center',
-    width: 22,
-  },
-  checkCircleActive: {
-    backgroundColor: theme.colors.primaryStrong,
-    borderColor: theme.colors.primaryStrong,
   },
 });
