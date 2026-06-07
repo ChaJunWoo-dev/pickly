@@ -2,8 +2,7 @@ import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-
-export type FeedTab = 'popular' | 'latest' | 'closingSoon';
+import type { FeedTab } from '../types/feed';
 
 type FeedTabItem = {
   label: string;

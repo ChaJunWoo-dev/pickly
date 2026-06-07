@@ -1,12 +1,12 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { ensureGuestSession } from '@/lib/auth';
 import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
-import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { getPollDetail } from '../api/get-poll-detail';
+import { submitPollVote } from '../api/submit-poll-vote';
 import type { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
 import { PollCommentPreviewCard } from '../components/poll-comment-preview-card';
@@ -14,10 +14,6 @@ import { PollDetailActionSheet } from '../components/poll-detail-action-sheet';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
 import { isPollExpired } from '../utils/poll-deadline';
-import {
-  mapPollFeedRowToCardData,
-  type PollFeedRow,
-} from '../utils/poll-mappers';
 
 export const PollDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -27,41 +23,15 @@ export const PollDetailScreen = () => {
   const [isLoadingPoll, setIsLoadingPoll] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
 
-  const loadPoll = async (currentUserId?: string) => {
+  const loadPoll = async () => {
     if (!id) return;
 
     setIsLoadingPoll(true);
 
     try {
-      const { data, error } = await supabase
-        .from('polls')
-        .select(
-          `
-          id,
-          title,
-          category,
-          reward_points,
-          expires_at,
-          is_closed,
-          poll_options (
-            id,
-            label,
-            image_url,
-            sort_order
-          ),
-          poll_votes (
-            id,
-            option_id,
-            user_id
-          )
-        `
-        )
-        .eq('id', id)
-        .single();
+      const nextPoll = await getPollDetail(id);
 
-      if (error) throw error;
-
-      setPoll(mapPollFeedRowToCardData(data as PollFeedRow, currentUserId));
+      setPoll(nextPoll);
     } catch (error) {
       setPoll(null);
     } finally {
@@ -77,20 +47,9 @@ export const PollDetailScreen = () => {
     setIsVoting(true);
 
     try {
-      const user = await ensureGuestSession();
+      await submitPollVote(poll.id, optionId);
 
-      if (!user) {
-        throw new Error('Guest session is missing.');
-      }
-
-      const { error } = await supabase.rpc('submit_poll_vote', {
-        p_poll_id: poll.id,
-        p_option_id: optionId,
-      });
-
-      if (error) throw error;
-
-      await loadPoll(user.id);
+      await loadPoll();
     } catch (error) {
       if (
         typeof error === 'object' &&
@@ -114,13 +73,7 @@ export const PollDetailScreen = () => {
   useEffect(() => {
     if (!id) return;
 
-    const initPoll = async () => {
-      const user = await ensureGuestSession();
-
-      await loadPoll(user?.id);
-    };
-
-    void initPoll();
+    void loadPoll();
   }, [id]);
 
   if (isLoadingPoll) {

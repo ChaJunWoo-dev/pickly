@@ -1,19 +1,16 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { ensureGuestSession } from '@/lib/auth';
 import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
-import { supabase } from '@/lib/supabase';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { FeedTabs, type FeedTab } from '../components/feed-tabs';
+import { getFeedPolls } from '../api/get-feed-polls';
+import { submitPollVote } from '../api/submit-poll-vote';
+import { FeedTabs } from '../components/feed-tabs';
 import { PollCard, type PollCardData } from '../components/poll-card';
+import type { FeedTab } from '../types/feed';
 import { isPollExpired } from '../utils/poll-deadline';
-import {
-  mapPollFeedRowToCardData,
-  type PollFeedRow,
-} from '../utils/poll-mappers';
 
 export const HomeFeedScreen = () => {
   const router = useRouter();
@@ -27,51 +24,9 @@ export const HomeFeedScreen = () => {
     setIsLoadingPolls(true);
 
     try {
-      const user = await ensureGuestSession();
+      const nextPolls = await getFeedPolls(activeFeedTab);
 
-      const { data, error } = await supabase
-        .from('polls')
-        .select(
-          `
-        id,
-        title,
-        category,
-        reward_points,
-        expires_at,
-        is_closed,
-        poll_options (
-          id,
-          label,
-          image_url,
-          sort_order
-        ),
-        poll_votes (
-          id,
-          option_id,
-          user_id
-        )
-      `
-        )
-        .eq('is_closed', false)
-        .gt('expires_at', new Date().toISOString())
-        .order(activeFeedTab === 'closingSoon' ? 'expires_at' : 'created_at', {
-          ascending: activeFeedTab === 'closingSoon',
-        });
-
-      if (error) throw error;
-
-      const pollRows = (data ?? []) as PollFeedRow[];
-
-      const sortedPollRows =
-        activeFeedTab === 'popular'
-          ? [...pollRows].sort(
-              (a, b) => b.poll_votes.length - a.poll_votes.length
-            )
-          : pollRows;
-
-      setPolls(
-        sortedPollRows.map((poll) => mapPollFeedRowToCardData(poll, user?.id))
-      );
+      setPolls(nextPolls);
     } catch (error) {
       console.error('load polls failed', error);
     } finally {
@@ -108,18 +63,7 @@ export const HomeFeedScreen = () => {
     setVotingPollId(pollId);
 
     try {
-      const user = await ensureGuestSession();
-
-      if (!user) {
-        throw new Error('Guest session is missing.');
-      }
-
-      const { error } = await supabase.rpc('submit_poll_vote', {
-        p_poll_id: pollId,
-        p_option_id: optionId,
-      });
-
-      if (error) throw error;
+      await submitPollVote(pollId, optionId);
 
       await loadPolls();
     } catch (error) {

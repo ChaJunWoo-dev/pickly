@@ -1,4 +1,5 @@
 import { ensureGuestSession } from '@/lib/auth';
+import { POLL_WITH_OPTIONS_AND_VOTES_SELECT } from '@/features/polls/api/poll-select-query';
 import { supabase } from '@/lib/supabase';
 import {
   mapVoteRowToParticipatedPoll,
@@ -21,23 +22,7 @@ export const getParticipationHistory = async (): Promise<ParticipatedPoll[]> => 
       option_id,
       created_at,
       polls (
-        id,
-        title,
-        category,
-        reward_points,
-        expires_at,
-        is_closed,
-        poll_options (
-          id,
-          label,
-          image_url,
-          sort_order
-        ),
-        poll_votes (
-          id,
-          option_id,
-          user_id
-        )
+        ${POLL_WITH_OPTIONS_AND_VOTES_SELECT}
       )
     `
     )
