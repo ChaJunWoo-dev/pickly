@@ -2,17 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 
 export default function TabLayout() {
+  const { appTheme } = useThemeMode();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
+        tabBarActiveTintColor: appTheme.colors.primary,
+        tabBarInactiveTintColor: appTheme.colors.textMuted,
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
+          backgroundColor: appTheme.colors.surface,
+          borderTopColor: appTheme.colors.border,
           height: theme.layout.bottomTabHeight,
           paddingBottom: theme.spacing.sm,
           paddingTop: theme.spacing.xs,

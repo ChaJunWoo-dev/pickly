@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -10,6 +11,7 @@ type ProfileSubpageHeaderProps = {
 
 export const ProfileSubpageHeader = ({ title }: ProfileSubpageHeaderProps) => {
   const router = useRouter();
+  const { appTheme } = useThemeMode();
 
   return (
     <View style={styles.header}>
@@ -19,7 +21,7 @@ export const ProfileSubpageHeader = ({ title }: ProfileSubpageHeaderProps) => {
         onPress={() => router.back()}
         style={styles.iconButton}
       >
-        <Ionicons color={theme.colors.text} name="chevron-back" size={22} />
+        <Ionicons color={appTheme.colors.text} name="chevron-back" size={22} />
       </Pressable>
 
       <AppText style={styles.title} variant="subtitle" weight="bold">

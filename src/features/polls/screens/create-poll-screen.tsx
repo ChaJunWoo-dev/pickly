@@ -1,5 +1,6 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewar
 import { getPollExpiresAt, type PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
+  const { appTheme } = useThemeMode();
   const QUESTION_MAX_LENGTH = 50;
   const OPTION_MAX_LENGTH = 20;
   const MAX_OPTION_COUNT = 4;
@@ -126,7 +128,7 @@ export const CreatePollScreen = () => {
           onPress={() => router.back()}
           style={styles.iconButton}
         >
-          <Ionicons color={theme.colors.text} name="chevron-back" size={22} />
+          <Ionicons color={appTheme.colors.text} name="chevron-back" size={22} />
         </Pressable>
 
         <AppText variant="subtitle" weight="bold" style={styles.topBarTitle}>

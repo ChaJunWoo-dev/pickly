@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { PollOptionPreview } from './poll-card';
@@ -19,6 +20,8 @@ export const PollDetailOptionList = ({
   options,
   selectedOptionId,
 }: PollDetailOptionListProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
     <View style={styles.voteOptions}>
       {options.slice(0, 2).map((option) => {
@@ -33,19 +36,30 @@ export const PollDetailOptionList = ({
             onPress={() => onVote(option.id)}
             style={[
               styles.voteOption,
-              isSelected && styles.voteOptionActive,
+              {
+                backgroundColor: appTheme.colors.surface,
+                borderColor: appTheme.colors.border,
+              },
+              isSelected && {
+                backgroundColor: appTheme.colors.primarySoft,
+                borderColor: appTheme.colors.primaryStrong,
+              },
               (disabled || isVoting) && styles.voteOptionDisabled,
             ]}
           >
             <View
               style={[
                 styles.checkCircle,
-                isSelected && styles.checkCircleActive,
+                { borderColor: appTheme.colors.borderStrong },
+                isSelected && {
+                  backgroundColor: appTheme.colors.primaryStrong,
+                  borderColor: appTheme.colors.primaryStrong,
+                },
               ]}
             >
               {isSelected ? (
                 <Ionicons
-                  color={theme.colors.inverseText}
+                  color={appTheme.colors.inverseText}
                   name="checkmark"
                   size={14}
                 />
@@ -68,8 +82,6 @@ const styles = StyleSheet.create({
   },
   voteOption: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
     flexDirection: 'row',
@@ -77,24 +89,15 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: theme.spacing.lg,
   },
-  voteOptionActive: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryStrong,
-  },
   voteOptionDisabled: {
     opacity: 0.55,
   },
   checkCircle: {
     alignItems: 'center',
-    borderColor: theme.colors.borderStrong,
     borderRadius: theme.radius.full,
     borderWidth: 1,
     height: 22,
     justifyContent: 'center',
     width: 22,
-  },
-  checkCircleActive: {
-    backgroundColor: theme.colors.primaryStrong,
-    borderColor: theme.colors.primaryStrong,
   },
 });

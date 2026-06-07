@@ -148,7 +148,7 @@ export const PollDetailScreen = () => {
       </View>
 
       <View style={styles.titleBlock}>
-        <AppText style={styles.question} variant="title" weight="bold">
+        <AppText variant="title" weight="bold">
           {poll.question}
         </AppText>
       </View>
@@ -194,9 +194,6 @@ const styles = StyleSheet.create({
   },
   titleBlock: {
     gap: theme.spacing.xs,
-  },
-  question: {
-    color: theme.colors.text,
   },
   participants: {
     alignItems: 'center',

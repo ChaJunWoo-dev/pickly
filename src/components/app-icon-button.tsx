@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import {
   Pressable,
   StyleSheet,
@@ -33,23 +34,6 @@ const sizeStyles: Record<AppIconButtonSize, ViewStyle> = {
   },
 };
 
-const variantStyles: Record<AppIconButtonVariant, ViewStyle> = {
-  plain: {
-    backgroundColor: 'transparent',
-  },
-  surface: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderWidth: 1,
-  },
-  primary: {
-    backgroundColor: theme.colors.primaryStrong,
-  },
-  danger: {
-    backgroundColor: theme.colors.dangerSoft,
-  },
-};
-
 export const AppIconButton = ({
   icon,
   variant = 'plain',
@@ -57,24 +41,44 @@ export const AppIconButton = ({
   disabled,
   style,
   ...props
-}: AppIconButtonProps) => (
-  <Pressable
-    {...props}
-    accessibilityRole="button"
-    disabled={disabled}
-    hitSlop={props.hitSlop ?? theme.spacing.sm}
-    style={({ pressed }) => [
-      styles.base,
-      sizeStyles[size],
-      variantStyles[variant],
-      disabled && styles.disabled,
-      pressed && !disabled && styles.pressed,
-      style,
-    ]}
-  >
-    {icon}
-  </Pressable>
-);
+}: AppIconButtonProps) => {
+  const { appTheme } = useThemeMode();
+  const variantStyles: Record<AppIconButtonVariant, ViewStyle> = {
+    plain: {
+      backgroundColor: 'transparent',
+    },
+    surface: {
+      backgroundColor: appTheme.colors.surface,
+      borderColor: appTheme.colors.border,
+      borderWidth: 1,
+    },
+    primary: {
+      backgroundColor: appTheme.colors.primaryStrong,
+    },
+    danger: {
+      backgroundColor: appTheme.colors.dangerSoft,
+    },
+  };
+
+  return (
+    <Pressable
+      {...props}
+      accessibilityRole="button"
+      disabled={disabled}
+      hitSlop={props.hitSlop ?? theme.spacing.sm}
+      style={({ pressed }) => [
+        styles.base,
+        sizeStyles[size],
+        variantStyles[variant],
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+        style,
+      ]}
+    >
+      {icon}
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create({
   base: {

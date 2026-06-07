@@ -1,15 +1,23 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 export const ProfileGuestCard = () => {
+  const { appTheme } = useThemeMode();
+
   return (
     <Card style={styles.card}>
       <View style={styles.profileRow}>
-        <View style={styles.avatar}>
+        <View
+          style={[
+            styles.avatar,
+            { backgroundColor: appTheme.colors.primarySoft },
+          ]}
+        >
           <Ionicons
-            color={theme.colors.primaryStrong}
+            color={appTheme.colors.primaryStrong}
             name="person-outline"
             size={28}
           />
@@ -25,8 +33,18 @@ export const ProfileGuestCard = () => {
         </View>
       </View>
 
-      <Pressable accessibilityRole="button" style={styles.appleButton}>
-        <Ionicons color={theme.colors.inverseText} name="logo-apple" size={20} />
+      <Pressable
+        accessibilityRole="button"
+        style={[
+          styles.appleButton,
+          { backgroundColor: appTheme.colors.text },
+        ]}
+      >
+        <Ionicons
+          color={appTheme.colors.inverseText}
+          name="logo-apple"
+          size={20}
+        />
         <AppText tone="inverse" variant="bodySmall" weight="bold">
           Apple로 계속하기
         </AppText>
@@ -46,7 +64,6 @@ const styles = StyleSheet.create({
   },
   avatar: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
     borderRadius: theme.radius.full,
     height: 58,
     justifyContent: 'center',
@@ -58,7 +75,6 @@ const styles = StyleSheet.create({
   },
   appleButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.text,
     borderRadius: theme.radius.sm,
     flexDirection: 'row',
     gap: theme.spacing.sm,

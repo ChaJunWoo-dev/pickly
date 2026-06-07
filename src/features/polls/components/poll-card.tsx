@@ -1,5 +1,6 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 import { isPollExpired } from '../utils/poll-deadline';
@@ -34,6 +35,7 @@ type PollCardProps = {
 };
 
 export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
+  const { appTheme } = useThemeMode();
   const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
   const isVoteDisabled = isPollClosed || poll.hasVoted;
 
@@ -52,7 +54,7 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
           pressed && styles.titleBlockPressed,
         ]}
       >
-        <AppText style={styles.question} variant="subtitle" weight="bold">
+        <AppText variant="subtitle" weight="bold">
           {poll.question}
         </AppText>
 
@@ -61,7 +63,12 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
             {poll.participantCount.toLocaleString()}명 참여
           </AppText>
 
-          <View style={styles.rewardPill}>
+          <View
+            style={[
+              styles.rewardPill,
+              { backgroundColor: appTheme.colors.rewardSoft },
+            ]}
+          >
             <AppText tone="reward" variant="caption" weight="bold">
               +{poll.rewardPoints}P
             </AppText>
@@ -91,7 +98,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   rewardPill: {
-    backgroundColor: theme.colors.rewardSoft,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
@@ -101,9 +107,6 @@ const styles = StyleSheet.create({
   },
   titleBlockPressed: {
     opacity: 0.78,
-  },
-  question: {
-    color: theme.colors.text,
   },
   questionMeta: {
     alignItems: 'center',

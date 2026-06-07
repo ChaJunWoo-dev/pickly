@@ -1,6 +1,7 @@
 export { AppButton } from './app-button';
 export { AppIconButton } from './app-icon-button';
 export { AppInput } from './app-input';
+export { AppModal } from './app-modal';
 export { AppText } from './app-text';
 export { Avatar } from './avatar';
 export { Card } from './card';

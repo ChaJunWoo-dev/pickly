@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ScrollView,
@@ -28,15 +29,19 @@ export const Screen = ({
   children,
   ...props
 }: ScreenProps) => {
+  const { appTheme } = useThemeMode();
   const contentStyle = [
     scroll ? styles.scrollContent : styles.content,
+    { backgroundColor: appTheme.colors.background },
     padded && styles.padded,
     centered && styles.centered,
     contentContainerStyle,
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: appTheme.colors.background }]}
+    >
       {scroll ? (
         <ScrollView
           {...scrollViewProps}
@@ -47,7 +52,11 @@ export const Screen = ({
           showsVerticalScrollIndicator={
             scrollViewProps?.showsVerticalScrollIndicator ?? false
           }
-          style={[styles.scrollView, style]}
+          style={[
+            styles.scrollView,
+            { backgroundColor: appTheme.colors.background },
+            style,
+          ]}
         >
           {children}
         </ScrollView>
@@ -63,18 +72,14 @@ export const Screen = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    backgroundColor: theme.colors.background,
     flexGrow: 1,
   },
   padded: {

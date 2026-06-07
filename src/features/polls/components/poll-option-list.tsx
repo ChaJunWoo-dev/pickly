@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { PollOptionPreview } from './poll-card';
 
@@ -20,6 +21,7 @@ export const PollOptionList = ({
   showResults = false,
   onVote,
 }: PollOptionListProps) => {
+  const { appTheme } = useThemeMode();
   const hasImageOptions = options.some((option) => option.imageUrl);
   const useLargeImageOptions = hasImageOptions && options.length === 2;
 
@@ -37,14 +39,22 @@ export const PollOptionList = ({
             onPress={() => onVote?.(pollId, option.id)}
             style={({ pressed }) => [
               styles.imageOption,
-              disabled && styles.optionDisabled,
+              {
+                backgroundColor: appTheme.colors.surface,
+                borderColor: appTheme.colors.border,
+              },
+              disabled && !showResults && styles.optionDisabled,
               pressed && styles.optionPressed,
             ]}
           >
             <View
               style={[
                 styles.radio,
-                option.id === selectedOptionId && styles.radioSelected,
+                { borderColor: appTheme.colors.borderStrong },
+                option.id === selectedOptionId && {
+                  backgroundColor: appTheme.colors.primary,
+                  borderColor: appTheme.colors.primary,
+                },
               ]}
             />
             {option.imageUrl ? (
@@ -67,7 +77,8 @@ export const PollOptionList = ({
             onPress={() => onVote?.(pollId, option.id)}
             style={({ pressed }) => [
               styles.option,
-              disabled && styles.optionDisabled,
+              { backgroundColor: appTheme.colors.surfaceMuted },
+              disabled && !showResults && styles.optionDisabled,
               pressed && styles.optionPressed,
             ]}
           >
@@ -81,7 +92,13 @@ export const PollOptionList = ({
             <View style={styles.optionBody}>
               {showResults ? (
                 <View
-                  style={[styles.optionFill, { width: `${option.percent}%` }]}
+                  style={[
+                    styles.optionFill,
+                    {
+                      backgroundColor: appTheme.colors.primarySoft,
+                      width: `${option.percent}%`,
+                    },
+                  ]}
                 />
               ) : null}
               <View style={styles.optionContent}>
@@ -90,7 +107,11 @@ export const PollOptionList = ({
                     <View
                       style={[
                         styles.inlineRadio,
-                        option.id === selectedOptionId && styles.radioSelected,
+                        { borderColor: appTheme.colors.borderStrong },
+                        option.id === selectedOptionId && {
+                          backgroundColor: appTheme.colors.primary,
+                          borderColor: appTheme.colors.primary,
+                        },
                       ]}
                     />
                   ) : null}
@@ -121,7 +142,6 @@ const styles = StyleSheet.create({
   },
   option: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.sm,
     flexDirection: 'row',
     gap: theme.spacing.sm,
@@ -135,7 +155,6 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   optionFill: {
-    backgroundColor: theme.colors.primarySoft,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -166,8 +185,6 @@ const styles = StyleSheet.create({
   },
   imageOption: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
     flex: 1,
@@ -180,7 +197,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   radio: {
-    borderColor: theme.colors.borderStrong,
     borderRadius: theme.radius.full,
     borderWidth: 2,
     height: 18,
@@ -190,14 +206,9 @@ const styles = StyleSheet.create({
     width: 18,
   },
   inlineRadio: {
-    borderColor: theme.colors.borderStrong,
     borderRadius: theme.radius.full,
     borderWidth: 2,
     height: 18,
     width: 18,
-  },
-  radioSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
 });

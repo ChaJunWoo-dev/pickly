@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -17,6 +18,8 @@ export const PollDetailTopBar = ({
   onOpenActions,
   onToggleSave,
 }: PollDetailTopBarProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
     <View style={styles.topBar}>
       <Pressable
@@ -24,7 +27,7 @@ export const PollDetailTopBar = ({
         onPress={onBack}
         style={styles.iconButton}
       >
-        <Ionicons color={theme.colors.text} name="chevron-back" size={22} />
+        <Ionicons color={appTheme.colors.text} name="chevron-back" size={22} />
       </Pressable>
 
       <View style={styles.topActions}>
@@ -35,7 +38,7 @@ export const PollDetailTopBar = ({
           style={[styles.iconButton, isSavingPoll && styles.iconButtonMuted]}
         >
           <Ionicons
-            color={isSaved ? theme.colors.primary : theme.colors.text}
+            color={isSaved ? appTheme.colors.primary : appTheme.colors.text}
             name={isSaved ? 'bookmark' : 'bookmark-outline'}
             size={20}
           />
@@ -47,7 +50,7 @@ export const PollDetailTopBar = ({
           style={styles.iconButton}
         >
           <Ionicons
-            color={theme.colors.text}
+            color={appTheme.colors.text}
             name="ellipsis-horizontal"
             size={20}
           />

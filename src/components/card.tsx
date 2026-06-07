@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 
 type CardProps = ViewProps & {
@@ -12,24 +13,30 @@ export const Card = ({
   style,
   children,
   ...props
-}: CardProps) => (
-  <View
-    {...props}
-    style={[
-      styles.base,
-      padded && styles.padded,
-      elevated && theme.shadow.card,
-      style,
-    ]}
-  >
-    {children}
-  </View>
-);
+}: CardProps) => {
+  const { appTheme } = useThemeMode();
+
+  return (
+    <View
+      {...props}
+      style={[
+        styles.base,
+        {
+          backgroundColor: appTheme.colors.surface,
+          borderColor: appTheme.colors.border,
+        },
+        padded && styles.padded,
+        elevated && appTheme.shadow.card,
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.layout.cardRadius,
     borderWidth: 1,
   },

@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { FeedTab } from '../types/feed';
@@ -22,8 +23,18 @@ const feedTabs: FeedTabItem[] = [
 ];
 
 export const FeedTabs = ({ value, onChange }: FeedTabsProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: appTheme.colors.surface,
+          borderColor: appTheme.colors.border,
+        },
+      ]}
+    >
       {feedTabs.map((tab, index) => {
         const isActive = value === tab.value;
         const isPreviousActive = feedTabs[index - 1]?.value === value;
@@ -31,19 +42,37 @@ export const FeedTabs = ({ value, onChange }: FeedTabsProps) => {
 
         return (
           <View key={tab.value} style={styles.tabSlot}>
-            {showDivider ? <View style={styles.divider} /> : null}
+            {showDivider ? (
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: appTheme.colors.border },
+                ]}
+              />
+            ) : null}
 
             <Pressable
               accessibilityRole="button"
               onPress={() => onChange?.(tab.value)}
-              style={[styles.tab, isActive && styles.tabActive]}
+              style={[
+                styles.tab,
+                isActive && styles.tabActive,
+                isActive && {
+                  backgroundColor: appTheme.colors.primarySoft,
+                  borderColor: appTheme.colors.primary,
+                },
+              ]}
             >
               {isActive ? (
-                <Ionicons color={theme.colors.text} name={tab.icon} size={15} />
+                <Ionicons
+                  color={appTheme.colors.text}
+                  name={tab.icon}
+                  size={15}
+                />
               ) : null}
 
               <AppText
-                style={[styles.tabText, isActive && styles.tabTextActive]}
+                style={[styles.tabText, { color: appTheme.colors.text }]}
                 weight="bold"
               >
                 {tab.label}
@@ -59,8 +88,6 @@ export const FeedTabs = ({ value, onChange }: FeedTabsProps) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
     flexDirection: 'row',
@@ -81,23 +108,16 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   tabActive: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
   },
   tabText: {
-    color: theme.colors.text,
     fontSize: 14,
     lineHeight: 20,
-  },
-  tabTextActive: {
-    color: theme.colors.text,
   },
   divider: {
     height: 18,
     width: 1,
-    backgroundColor: theme.colors.border,
     marginHorizontal: theme.spacing.xs,
   },
 });

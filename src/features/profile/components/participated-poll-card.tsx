@@ -1,5 +1,6 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { ParticipatedPoll } from '../utils/participation-history';
@@ -13,24 +14,39 @@ export const ParticipatedPollCard = ({
   poll,
   onPress,
 }: ParticipatedPollCardProps) => {
+  const { appTheme } = useThemeMode();
   const isClosed = poll.status === '마감';
 
   return (
     <Pressable accessibilityRole="button" onPress={onPress}>
       <Card style={styles.pollCard}>
         <View style={styles.pollHeader}>
-          <View style={styles.categoryPill}>
+          <View
+            style={[
+              styles.categoryPill,
+              { backgroundColor: appTheme.colors.secondarySoft },
+            ]}
+          >
             <AppText tone="accent" variant="caption" weight="bold">
               {poll.category}
             </AppText>
           </View>
 
           <View
-            style={[styles.statusPill, isClosed && styles.closedStatusPill]}
+            style={[
+              styles.statusPill,
+              {
+                backgroundColor: isClosed
+                  ? appTheme.colors.surfaceMuted
+                  : appTheme.colors.primarySoft,
+              },
+            ]}
           >
             <Ionicons
               color={
-                isClosed ? theme.colors.textMuted : theme.colors.primaryStrong
+                isClosed
+                  ? appTheme.colors.textMuted
+                  : appTheme.colors.primaryStrong
               }
               name={isClosed ? 'lock-closed-outline' : 'time-outline'}
               size={13}
@@ -59,14 +75,24 @@ export const ParticipatedPollCard = ({
             </AppText>
           </View>
 
-          <View style={styles.rewardPill}>
+          <View
+            style={[
+              styles.rewardPill,
+              { backgroundColor: appTheme.colors.rewardSoft },
+            ]}
+          >
             <AppText tone="reward" variant="caption" weight="bold">
               {poll.reward}
             </AppText>
           </View>
         </View>
 
-        <View style={styles.resultBlock}>
+        <View
+          style={[
+            styles.resultBlock,
+            { backgroundColor: appTheme.colors.surfaceMuted },
+          ]}
+        >
           <View style={styles.resultHeader}>
             <AppText tone="muted" variant="caption" weight="semibold">
               현재 1위
@@ -76,11 +102,19 @@ export const ParticipatedPollCard = ({
             </AppText>
           </View>
 
-          <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressTrack,
+              { backgroundColor: appTheme.colors.border },
+            ]}
+          >
             <View
               style={[
                 styles.progressFill,
-                { width: `${poll.leadingPercent}%` },
+                {
+                  backgroundColor: appTheme.colors.primaryStrong,
+                  width: `${poll.leadingPercent}%`,
+                },
               ]}
             />
           </View>
@@ -109,22 +143,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryPill: {
-    backgroundColor: theme.colors.secondarySoft,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
   },
   statusPill: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
     borderRadius: theme.radius.full,
     flexDirection: 'row',
     gap: theme.spacing.xxs,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
-  },
-  closedStatusPill: {
-    backgroundColor: theme.colors.surfaceMuted,
   },
   metaRow: {
     alignItems: 'center',
@@ -137,13 +166,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xxs,
   },
   rewardPill: {
-    backgroundColor: theme.colors.rewardSoft,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
   },
   resultBlock: {
-    backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.sm,
     gap: theme.spacing.sm,
     padding: theme.spacing.md,
@@ -154,13 +181,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   progressTrack: {
-    backgroundColor: theme.colors.border,
     borderRadius: theme.radius.full,
     height: 6,
     overflow: 'hidden',
   },
   progressFill: {
-    backgroundColor: theme.colors.primaryStrong,
     borderRadius: theme.radius.full,
     height: '100%',
   },

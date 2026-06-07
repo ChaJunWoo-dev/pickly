@@ -1,8 +1,14 @@
 import { AppText, Card, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
+import {
+  getThemeModeLabel,
+  ThemeModeModal,
+} from '../components/theme-mode-modal';
 
 const settings = [
   {
@@ -15,7 +21,7 @@ const settings = [
     id: 'appearance',
     icon: 'color-palette-outline',
     title: '화면 설정',
-    description: '시스템 설정에 맞춰 표시',
+    description: '시스템 설정',
   },
   {
     id: 'privacy',
@@ -26,6 +32,9 @@ const settings = [
 ] as const;
 
 export const AppSettingsScreen = () => {
+  const { appTheme, setThemeMode, themeMode } = useThemeMode();
+  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
+
   return (
     <Screen
       scroll
@@ -39,11 +48,27 @@ export const AppSettingsScreen = () => {
           <Pressable
             key={item.id}
             accessibilityRole="button"
-            style={[styles.row, index > 0 && styles.rowBorder]}
+            onPress={() => {
+              if (item.id === 'appearance') {
+                setIsThemeModalVisible(true);
+              }
+            }}
+            style={[
+              styles.row,
+              index > 0 && {
+                borderTopColor: appTheme.colors.border,
+                borderTopWidth: 1,
+              },
+            ]}
           >
-            <View style={styles.icon}>
+            <View
+              style={[
+                styles.icon,
+                { backgroundColor: appTheme.colors.surfaceMuted },
+              ]}
+            >
               <Ionicons
-                color={theme.colors.textMuted}
+                color={appTheme.colors.textMuted}
                 name={item.icon}
                 size={19}
               />
@@ -54,12 +79,14 @@ export const AppSettingsScreen = () => {
                 {item.title}
               </AppText>
               <AppText tone="muted" variant="caption">
-                {item.description}
+                {item.id === 'appearance'
+                  ? getThemeModeLabel(themeMode)
+                  : item.description}
               </AppText>
             </View>
 
             <Ionicons
-              color={theme.colors.textSubtle}
+              color={appTheme.colors.textSubtle}
               name="chevron-forward"
               size={16}
             />
@@ -72,6 +99,15 @@ export const AppSettingsScreen = () => {
           Pickly 1.0.0
         </AppText>
       </View>
+
+      <ThemeModeModal
+        visible={isThemeModalVisible}
+        value={themeMode}
+        onClose={() => setIsThemeModalVisible(false)}
+        onChange={(nextThemeMode) => {
+          void setThemeMode(nextThemeMode);
+        }}
+      />
     </Screen>
   );
 };
@@ -91,13 +127,8 @@ const styles = StyleSheet.create({
     minHeight: 64,
     paddingVertical: theme.spacing.sm,
   },
-  rowBorder: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-  },
   icon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.full,
     height: 36,
     justifyContent: 'center',

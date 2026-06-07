@@ -35,6 +35,41 @@ export const colors = {
   overlay: 'rgba(31, 41, 51, 0.36)',
 } as const;
 
+export const darkColors = {
+  background: '#101417',
+  surface: '#171D20',
+  surfaceMuted: '#222A2E',
+
+  text: '#F4F7F2',
+  textMuted: '#B7C0B2',
+  textSubtle: '#7E8980',
+  inverseText: '#101417',
+
+  border: '#2C3631',
+  borderStrong: '#435047',
+
+  primary: '#9BE15D',
+  primaryStrong: '#8AD94F',
+  primarySoft: '#20351A',
+
+  secondary: '#72A7FF',
+  secondarySoft: '#142946',
+
+  reward: '#FF826F',
+  rewardSoft: '#3F211D',
+
+  warning: '#F6BE4F',
+  warningSoft: '#3B2E12',
+
+  danger: '#FF6B70',
+  dangerSoft: '#3A1E21',
+
+  success: '#43D987',
+  successSoft: '#183626',
+
+  overlay: 'rgba(0, 0, 0, 0.58)',
+} as const;
+
 export const spacing = {
   xxs: 4,
   xs: 6,
@@ -106,7 +141,35 @@ export const layout = {
   bottomTabHeight: 64,
 } as const;
 
-export const theme = {
+type AppShadow = {
+  card: {
+    shadowColor: string;
+    shadowOffset: { width: number; height: number };
+    shadowOpacity: number;
+    shadowRadius: number;
+    elevation: number;
+  };
+  floating: {
+    shadowColor: string;
+    shadowOffset: { width: number; height: number };
+    shadowOpacity: number;
+    shadowRadius: number;
+    elevation: number;
+  };
+};
+
+export type AppTheme = {
+  colors: Record<keyof typeof colors, string>;
+  spacing: typeof spacing;
+  radius: typeof radius;
+  fontSize: typeof fontSize;
+  fontWeight: typeof fontWeight;
+  lineHeight: typeof lineHeight;
+  shadow: AppShadow;
+  layout: typeof layout;
+};
+
+export const theme: AppTheme = {
   colors,
   spacing,
   radius,
@@ -115,9 +178,28 @@ export const theme = {
   lineHeight,
   shadow,
   layout,
-} as const;
+};
 
-export type AppTheme = typeof theme;
+export const darkTheme: AppTheme = {
+  ...theme,
+  colors: darkColors,
+  shadow: {
+    card: {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.22,
+      shadowRadius: 14,
+      elevation: 2,
+    },
+    floating: {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.34,
+      shadowRadius: 22,
+      elevation: 5,
+    },
+  },
+};
 export type AppColor = keyof typeof colors;
 
 const tintColorLight = colors.primaryStrong;
