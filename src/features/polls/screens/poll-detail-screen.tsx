@@ -6,7 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
-import { getIsPollSaved } from '../api/poll-saves';
+import { getIsPollSaved, togglePollSave } from '../api/poll-saves';
 import { submitPollVote } from '../api/submit-poll-vote';
 import type { PollCardData } from '../components/poll-card';
 import { PollCategoryPill } from '../components/poll-category-pill';
@@ -45,6 +45,22 @@ export const PollDetailScreen = () => {
       setIsSaved(false);
     } finally {
       setIsLoadingPoll(false);
+      setIsSavingPoll(false);
+    }
+  };
+
+  const handleToggleSave = async () => {
+    if (isSavingPoll || !poll) return;
+
+    setIsSavingPoll(true);
+
+    try {
+      const nextIsSaved = await togglePollSave(poll.id, isSaved);
+      setIsSaved(nextIsSaved);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('저장 실패', '변경에 실패했어요');
+    } finally {
       setIsSavingPoll(false);
     }
   };
@@ -132,6 +148,7 @@ export const PollDetailScreen = () => {
             accessibilityRole="button"
             disabled={isSavingPoll}
             style={[styles.iconButton, isSavingPoll && styles.iconButtonMuted]}
+            onPress={handleToggleSave}
           >
             <Ionicons
               color={isSaved ? theme.colors.primary : theme.colors.text}
