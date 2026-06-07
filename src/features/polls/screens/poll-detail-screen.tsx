@@ -128,7 +128,11 @@ export const PollDetailScreen = () => {
         </Pressable>
 
         <View style={styles.topActions}>
-          <Pressable accessibilityRole="button" style={styles.iconButton}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={isSavingPoll}
+            style={[styles.iconButton, isSavingPoll && styles.iconButtonMuted]}
+          >
             <Ionicons
               color={isSaved ? theme.colors.primary : theme.colors.text}
               name={isSaved ? 'bookmark' : 'bookmark-outline'}
@@ -239,6 +243,9 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     width: 36,
+  },
+  iconButtonMuted: {
+    opacity: 0.55,
   },
   metaRow: {
     alignItems: 'center',
