@@ -11,9 +11,13 @@ import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { createPollComment, PollComment } from '../api/poll-comments';
+import {
+  createPollComment,
+  getPollComments,
+  PollComment,
+} from '../api/poll-comments';
 
 const COMMENT_MAX_LENGTH = 200;
 
@@ -38,6 +42,21 @@ export const PollCommentsScreen = () => {
     setComments((prev) => [nextComment, ...prev]);
     setCommentBody('');
   };
+
+  useEffect(() => {
+    const loadComments = async () => {
+      if (!id) return;
+
+      try {
+        const nextComments = await getPollComments(id);
+        setComments(nextComments);
+      } catch {
+        setComments([]);
+      }
+    };
+
+    loadComments();
+  }, [id]);
 
   return (
     <Screen

@@ -31,7 +31,7 @@ export const getPollCommentPreview = async (pollId: string) => {
     .select('id, poll_id, user_id, body, created_at')
     .eq('poll_id', pollId)
     .limit(3)
-    .order('created_at');
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
 
@@ -46,7 +46,7 @@ export const getPollComments = async (
     .from('comments')
     .select('id,poll_id,user_id,body,created_at')
     .eq('poll_id', pollId)
-    .order('created_at')
+    .order('created_at', { ascending: false })
     .range(range.from, range.to);
 
   if (error) throw error;
