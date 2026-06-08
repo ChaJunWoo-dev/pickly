@@ -1,73 +1,79 @@
-import { AppText, Avatar, Card } from '@/components';
+import { AppText, Avatar, Card, EmptyInfoRow } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import type { PollComment } from '../api/poll-comments';
 
-const comments = [
-  {
-    id: 'comment-1',
-    author: '태그몬디',
-    text: '오늘은 역시 편한 쪽으로 가고 싶어요.',
-    likes: 12,
-  },
-  {
-    id: 'comment-2',
-    author: '채니사랑',
-    text: '실용적인 선택이 최고죠.',
-    likes: 8,
-  },
-  {
-    id: 'comment-3',
-    author: '이하은',
-    text: '고민이 좀 되는데 저는 첫 번째요.',
-    likes: 6,
-  },
-];
+type PollCommentPreviewCardProps = {
+  comments: PollComment[];
+  onWriteComment?: () => void;
+  onPressAllView?: () => void;
+};
 
-export const PollCommentPreviewCard = () => {
+export const PollCommentPreviewCard = ({
+  comments,
+  onWriteComment,
+  onPressAllView,
+}: PollCommentPreviewCardProps) => {
+  const { appTheme } = useThemeMode();
+  const isEmpty = comments.length === 0;
+
   return (
     <Card style={styles.commentsCard}>
       <View style={styles.resultHeader}>
         <AppText variant="bodySmall" weight="bold">
           참여자 한마디
         </AppText>
-        <View style={styles.viewAll}>
-          <AppText tone="muted" variant="caption" weight="semibold">
-            전체보기
-          </AppText>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={onWriteComment}
+          style={styles.viewAll}
+        >
           <Ionicons
-            color={theme.colors.textMuted}
-            name="chevron-forward"
-            size={14}
+            color={appTheme.colors.textMuted}
+            name="create-outline"
+            size={15}
           />
-        </View>
+          <AppText tone="muted" variant="caption" weight="semibold">
+            작성
+          </AppText>
+        </Pressable>
       </View>
 
-      <View style={styles.comments}>
-        {comments.map((comment) => (
-          <View key={comment.id} style={styles.commentItem}>
-            <Avatar name={comment.author} size="sm" />
-            <View style={styles.commentBody}>
-              <AppText variant="caption" weight="bold">
-                {comment.author}
-              </AppText>
-              <AppText tone="muted" variant="caption">
-                {comment.text}
-              </AppText>
-            </View>
-            <View style={styles.likeCount}>
+      <Pressable onPress={onPressAllView}>
+        {isEmpty ? (
+          <EmptyInfoRow
+            description="첫 댓글을 남겨보세요"
+            icon={
               <Ionicons
-                color={theme.colors.textSubtle}
-                name="heart-outline"
-                size={14}
+                color={appTheme.colors.textSubtle}
+                name="chatbubble-ellipses-outline"
+                size={18}
               />
-              <AppText tone="subtle" variant="caption">
-                {comment.likes}
-              </AppText>
+            }
+            iconBackgroundColor={appTheme.colors.surfaceMuted}
+            title="아직 한마디가 없어요"
+          />
+        ) : (
+          <View style={styles.comments}>
+            {comments.map((comment) => (
+              <View key={comment.id} style={styles.commentItem}>
+                <Avatar name={'익명'} size="sm" />
+                <View style={styles.commentBody}>
+                  <AppText variant="caption" weight="bold">
+                    익명
+                  </AppText>
+                  <AppText tone="muted" variant="caption">
+                    {comment.body}
+                  </AppText>
+                </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+        )}
+      </Pressable>
     </Card>
   );
 };
@@ -91,11 +97,6 @@ const styles = StyleSheet.create({
   },
   commentBody: {
     flex: 1,
-    gap: theme.spacing.xxs,
-  },
-  likeCount: {
-    alignItems: 'center',
-    flexDirection: 'row',
     gap: theme.spacing.xxs,
   },
   viewAll: {
