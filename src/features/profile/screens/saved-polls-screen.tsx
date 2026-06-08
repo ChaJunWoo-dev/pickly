@@ -1,5 +1,6 @@
-import { AppText, Card, EmptyState, Screen } from '@/components';
+import { AppText, Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { getSavedPolls } from '@/features/polls/api/poll-saves';
 import {
   PollCard,
@@ -15,15 +16,14 @@ import { ProfileSubpageHeader } from '../components/profile-subpage-header';
 const SavedPollsLoading = () => {
   return (
     <Card style={styles.emptyCard}>
-      <AppText align="center" tone="muted" variant="bodySmall">
-        저장한 투표를 불러오는 중이에요
-      </AppText>
+      <LoadingState title="저장한 투표를 불러오는 중이에요" />
     </Card>
   );
 };
 
 export const SavedPollsScreen = () => {
   const isFocused = useIsFocused();
+  const { appTheme } = useThemeMode();
   const [savedPolls, setSavedPolls] = useState<PollCardData[]>([]);
   const [isLoadingSavedPolls, setIsLoadingSavedPolls] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export const SavedPollsScreen = () => {
             description="잠시 후 다시 시도해 주세요"
             icon={
               <Ionicons
-                color={theme.colors.textSubtle}
+                color={appTheme.colors.textSubtle}
                 name="alert-circle-outline"
                 size={34}
               />
@@ -97,7 +97,7 @@ export const SavedPollsScreen = () => {
             description="관심 있는 투표의 북마크를 누르면 여기에 모아둘게요"
             icon={
               <Ionicons
-                color={theme.colors.textSubtle}
+                color={appTheme.colors.textSubtle}
                 name="bookmark-outline"
                 size={34}
               />

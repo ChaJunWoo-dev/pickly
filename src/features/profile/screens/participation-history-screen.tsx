@@ -1,5 +1,6 @@
-import { AppText, Card, EmptyState, Screen } from '@/components';
+import { Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ import {
 } from '../utils/participation-history';
 
 export const ParticipationHistoryScreen = () => {
+  const { appTheme } = useThemeMode();
   const [selectedTabId, setSelectedTabId] = useState<ParticipationTabId>('all');
   const [participatedPolls, setParticipatedPolls] = useState<
     ParticipatedPoll[]
@@ -70,9 +72,9 @@ export const ParticipationHistoryScreen = () => {
       />
 
       {isLoading ? (
-        <AppText tone="muted" variant="bodySmall">
-          참여한 투표를 불러오는 중이에요
-        </AppText>
+        <Card style={styles.emptyCard}>
+          <LoadingState title="참여한 투표를 불러오는 중이에요" />
+        </Card>
       ) : null}
 
       {!isLoading && errorMessage ? (
@@ -81,7 +83,7 @@ export const ParticipationHistoryScreen = () => {
             description="잠시 후 다시 시도해 주세요"
             icon={
               <Ionicons
-                color={theme.colors.textSubtle}
+                color={appTheme.colors.textSubtle}
                 name="alert-circle-outline"
                 size={34}
               />
@@ -99,7 +101,7 @@ export const ParticipationHistoryScreen = () => {
             } 참여 투표가 생기면 여기에 모아둘게요`}
             icon={
               <Ionicons
-                color={theme.colors.textSubtle}
+                color={appTheme.colors.textSubtle}
                 name="file-tray-outline"
                 size={34}
               />
