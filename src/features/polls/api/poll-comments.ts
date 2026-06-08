@@ -73,4 +73,6 @@ export const createPollComment = async (pollId: string, body: string) => {
     .single();
 
   if (error) throw error;
+
+  return mapPollComment(data as PollCommentRow);
 };

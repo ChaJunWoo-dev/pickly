@@ -10,38 +10,34 @@ import {
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { createPollComment, PollComment } from '../api/poll-comments';
 
 const COMMENT_MAX_LENGTH = 200;
 
-const sampleComments = [
-  {
-    id: 'comment-1',
-    body: '저는 첫 번째 선택지가 더 끌려요',
-    createdAtLabel: '방금 전',
-  },
-  {
-    id: 'comment-2',
-    body: '생각보다 고민되네요. 결과도 궁금해요',
-    createdAtLabel: '3분 전',
-  },
-  {
-    id: 'comment-3',
-    body: '다른 사람들 의견 보는 재미가 있어요',
-    createdAtLabel: '12분 전',
-  },
-];
-
 export const PollCommentsScreen = () => {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { appTheme } = useThemeMode();
-  const [comment, setComment] = useState('');
+  const [commentBody, setCommentBody] = useState('');
+  const [comments, setComments] = useState<PollComment[]>([]);
 
-  const isEmpty = sampleComments.length === 0;
-  const trimmedComment = comment.trim();
+  const isEmpty = comments.length === 0;
+  const trimmedComment = commentBody.trim();
   const canSubmit = trimmedComment.length > 0;
+
+  const handleCreateComment = async () => {
+    if (!id) return;
+
+    const nextComment = await createPollComment(id, commentBody);
+
+    if (!nextComment) return;
+
+    setComments((prev) => [nextComment, ...prev]);
+    setCommentBody('');
+  };
 
   return (
     <Screen
@@ -71,7 +67,7 @@ export const PollCommentsScreen = () => {
 
       <View style={styles.summary}>
         <AppText variant="bodySmall" weight="semibold">
-          전체 댓글 {sampleComments.length}개
+          전체 댓글 {comments.length}개
         </AppText>
         <AppText tone="muted" variant="caption">
           투표에 대한 생각을 자유롭게 나눠보세요
@@ -85,21 +81,21 @@ export const PollCommentsScreen = () => {
           </AppText>
 
           <AppText
-            tone={comment.length >= COMMENT_MAX_LENGTH ? 'danger' : 'muted'}
+            tone={commentBody.length >= COMMENT_MAX_LENGTH ? 'danger' : 'muted'}
             variant="caption"
             weight="semibold"
           >
-            {comment.length}/{COMMENT_MAX_LENGTH}
+            {commentBody.length}/{COMMENT_MAX_LENGTH}
           </AppText>
         </View>
 
         <AppInput
           maxLength={COMMENT_MAX_LENGTH}
           multiline
-          onChangeText={setComment}
+          onChangeText={setCommentBody}
           placeholder="예) 저는 첫 번째 선택지가 더 끌려요"
           style={styles.commentInput}
-          value={comment}
+          value={commentBody}
         />
 
         <View style={styles.composerFooter}>
@@ -107,7 +103,11 @@ export const PollCommentsScreen = () => {
             댓글은 작성 후 다른 참여자에게 공개돼요
           </AppText>
 
-          <AppButton disabled={!canSubmit} size="sm">
+          <AppButton
+            disabled={!canSubmit}
+            size="sm"
+            onPress={handleCreateComment}
+          >
             등록
           </AppButton>
         </View>
@@ -129,7 +129,7 @@ export const PollCommentsScreen = () => {
           />
         ) : (
           <View style={styles.commentList}>
-            {sampleComments.map((item, index) => (
+            {comments.map((item, index) => (
               <View
                 key={item.id}
                 style={[
@@ -146,7 +146,7 @@ export const PollCommentsScreen = () => {
                       익명
                     </AppText>
                     <AppText tone="subtle" variant="caption">
-                      {item.createdAtLabel}
+                      {item.createdAt}
                     </AppText>
                   </View>
 
