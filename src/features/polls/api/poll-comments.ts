@@ -1,3 +1,4 @@
+import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 export type PollComment = {
@@ -34,4 +35,27 @@ export const getPollComments = async (pollId: string) => {
   if (error) throw error;
 
   return ((data ?? []) as PollCommentRow[]).map(mapPollComment);
+};
+
+export const creatPollComments = async (pollId: string, body: string) => {
+  const trimmedBody = body.trim();
+
+  if (!trimmedBody) return null;
+
+  const user = await ensureGuestSession();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('comments')
+    .insert({
+      poll_id: pollId,
+      body: trimmedBody,
+    })
+    .select('id, poll_id, user_id, body, created_at')
+    .single();
+
+  if (error) throw error;
+
+  return mapPollComment(data as PollCommentRow);
 };
