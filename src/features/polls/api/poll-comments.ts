@@ -54,7 +54,7 @@ export const getPollComments = async (
   return ((data ?? []) as PollCommentRow[]).map(mapPollComment);
 };
 
-export const creatPollComments = async (pollId: string, body: string) => {
+export const createPollComment = async (pollId: string, body: string) => {
   const trimmedBody = body.trim();
 
   if (!trimmedBody) return null;
@@ -73,6 +73,4 @@ export const creatPollComments = async (pollId: string, body: string) => {
     .single();
 
   if (error) throw error;
-
-  return mapPollComment(data as PollCommentRow);
 };

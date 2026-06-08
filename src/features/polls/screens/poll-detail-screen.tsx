@@ -108,6 +108,17 @@ export const PollDetailScreen = () => {
     }
   };
 
+  const handlePressViewAllComments = () => {
+    if (!poll) {
+      return;
+    }
+
+    router.push({
+      pathname: '/poll/[id]/comments',
+      params: { id: poll.id },
+    });
+  };
+
   useEffect(() => {
     if (!id) return;
 
@@ -177,7 +188,11 @@ export const PollDetailScreen = () => {
         participantCount={poll.participantCount}
       />
 
-      <PollCommentPreviewCard comments={commentPreview} />
+      <PollCommentPreviewCard
+        comments={commentPreview}
+        onPressAllView={handlePressViewAllComments}
+        onWriteComment={handlePressViewAllComments}
+      />
 
       <PollDetailActionSheet
         onClose={() => setIsActionSheetVisible(false)}
