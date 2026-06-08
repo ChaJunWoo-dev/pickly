@@ -25,12 +25,28 @@ const mapPollComment = (comment: PollCommentRow): PollComment => ({
   createdAt: comment.created_at,
 });
 
-export const getPollComments = async (pollId: string) => {
+export const getPollCommentPreview = async (pollId: string) => {
   const { data, error } = await supabase
     .from('comments')
     .select('id, poll_id, user_id, body, created_at')
     .eq('poll_id', pollId)
     .limit(3);
+
+  if (error) throw error;
+
+  return ((data ?? []) as PollCommentRow[]).map(mapPollComment);
+};
+
+export const getPollComments = async (
+  pollId: string,
+  range = { from: 0, to: 10 }
+) => {
+  const { data, error } = await supabase
+    .from('comments')
+    .select('id, poll_id, user_id, body, created_at')
+    .eq('poll_id', pollId)
+    .order('created_at')
+    .range(range.from, range.to);
 
   if (error) throw error;
 
