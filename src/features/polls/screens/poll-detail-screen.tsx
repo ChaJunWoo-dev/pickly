@@ -113,6 +113,11 @@ export const PollDetailScreen = () => {
       return;
     }
 
+    if (!poll.hasVoted) {
+      Alert.alert('댓글 작성 안내', '먼저 투표에 참여해주세요');
+      return;
+    }
+
     router.push({
       pathname: '/poll/[id]/comments',
       params: { id: poll.id },
