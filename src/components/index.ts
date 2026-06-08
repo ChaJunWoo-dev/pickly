@@ -6,5 +6,6 @@ export { AppText } from './app-text';
 export { Avatar } from './avatar';
 export { Card } from './card';
 export { Divider } from './divider';
+export { EmptyInfoRow } from './empty-info-row';
 export { EmptyState } from './empty-state';
 export { Screen } from './screen';

@@ -1,5 +1,6 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
@@ -12,11 +13,18 @@ export const ParticipationSummaryCard = ({
   pollCount,
   totalReward,
 }: ParticipationSummaryCardProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
     <Card style={styles.summaryCard}>
-      <View style={styles.summaryIcon}>
+      <View
+        style={[
+          styles.summaryIcon,
+          { backgroundColor: appTheme.colors.primarySoft },
+        ]}
+      >
         <Ionicons
-          color={theme.colors.primaryStrong}
+          color={appTheme.colors.primaryStrong}
           name="checkmark-done-outline"
           size={24}
         />
@@ -27,7 +35,7 @@ export const ParticipationSummaryCard = ({
           이번 달 {pollCount}개 투표에 참여했어요
         </AppText>
         <AppText tone="muted" variant="caption">
-          받은 보상은 총 +{totalReward}P예요.
+          받은 보상은 총 +{totalReward}P예요
         </AppText>
       </View>
     </Card>
@@ -42,7 +50,6 @@ const styles = StyleSheet.create({
   },
   summaryIcon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
     borderRadius: theme.radius.full,
     height: 44,
     justifyContent: 'center',
