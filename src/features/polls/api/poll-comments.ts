@@ -9,7 +9,7 @@ export type PollComment = {
   createdAt: string;
 };
 
-type PollCommentRow = {
+export type PollCommentRow = {
   id: string;
   poll_id: string;
   user_id: string;
@@ -30,7 +30,8 @@ export const getPollCommentPreview = async (pollId: string) => {
     .from('comments')
     .select('id, poll_id, user_id, body, created_at')
     .eq('poll_id', pollId)
-    .limit(3);
+    .limit(3)
+    .order('created_at');
 
   if (error) throw error;
 
@@ -43,7 +44,7 @@ export const getPollComments = async (
 ) => {
   const { data, error } = await supabase
     .from('comments')
-    .select('id, poll_id, user_id, body, created_at')
+    .select('id,poll_id,user_id,body,created_at')
     .eq('poll_id', pollId)
     .order('created_at')
     .range(range.from, range.to);
@@ -68,7 +69,7 @@ export const creatPollComments = async (pollId: string, body: string) => {
       poll_id: pollId,
       body: trimmedBody,
     })
-    .select('id, poll_id, user_id, body, created_at')
+    .select('id,poll_id,user_id,body,created_at')
     .single();
 
   if (error) throw error;

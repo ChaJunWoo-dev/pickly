@@ -8,6 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
+import { getPollCommentPreview, PollComment } from '../api/poll-comments';
 import { getIsPollSaved, togglePollSave } from '../api/poll-saves';
 import { submitPollVote } from '../api/submit-poll-vote';
 import type { PollCardData } from '../components/poll-card';
@@ -29,6 +30,7 @@ export const PollDetailScreen = () => {
   const [isVoting, setIsVoting] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSavingPoll, setIsSavingPoll] = useState(false);
+  const [commentPreview, setCommentPreview] = useState<PollComment[]>([]);
 
   const loadPoll = async () => {
     if (!id) return;
@@ -37,16 +39,19 @@ export const PollDetailScreen = () => {
     setIsSavingPoll(true);
 
     try {
-      const [nextPoll, nextIsSaved] = await Promise.all([
+      const [nextPoll, nextIsSaved, nextComments] = await Promise.all([
         getPollDetail(id),
         getIsPollSaved(id),
+        getPollCommentPreview(id),
       ]);
 
       setPoll(nextPoll);
       setIsSaved(nextIsSaved);
+      setCommentPreview(nextComments);
     } catch {
       setPoll(null);
       setIsSaved(false);
+      setCommentPreview([]);
     } finally {
       setIsLoadingPoll(false);
       setIsSavingPoll(false);
@@ -172,7 +177,7 @@ export const PollDetailScreen = () => {
         participantCount={poll.participantCount}
       />
 
-      <PollCommentPreviewCard />
+      <PollCommentPreviewCard comments={commentPreview} />
 
       <PollDetailActionSheet
         onClose={() => setIsActionSheetVisible(false)}
