@@ -2,7 +2,7 @@ import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { StyleSheet, View } from 'react-native';
-import { PointSummary } from '../utils/point-transactions';
+import type { PointSummary } from '../utils/point-transactions';
 
 type RewardSummaryCardProps = {
   summary: PointSummary;

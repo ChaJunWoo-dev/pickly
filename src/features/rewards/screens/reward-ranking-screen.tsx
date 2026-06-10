@@ -1,6 +1,7 @@
 import { AppIconButton, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getPointTransactions } from '../api/point-transactions';
@@ -9,24 +10,35 @@ import { RankingList } from '../components/ranking-list';
 import { RewardShopSection } from '../components/reward-shop-section';
 import { RewardSummaryCard } from '../components/reward-summary-card';
 import { SeasonRankCard } from '../components/season-rank-card';
-import { getPointSummary, PointSummary } from '../utils/point-transactions';
+import {
+  getPointSummary,
+  type PointSummary,
+  type PointTransaction,
+} from '../utils/point-transactions';
+
+const initialPointSummary: PointSummary = {
+  currentPoints: 0,
+  monthlyEarnedPoints: 0,
+  monthlySpentPoints: 0,
+};
 
 export const RewardRankingScreen = () => {
-  const initialPointSummary: PointSummary = {
-    currentPoints: 0,
-    monthlyEarnedPoints: 0,
-    monthlySpentPoints: 0,
-  };
   const [pointSummary, setPointSummary] =
     useState<PointSummary>(initialPointSummary);
+  const [pointTransactions, setPointTransactions] = useState<
+    PointTransaction[]
+  >([]);
+  const recentPointTransactions = pointTransactions.slice(0, 3);
 
   useEffect(() => {
     const loadPointTransactions = async () => {
       try {
-        const pointTransaction = await getPointTransactions();
-        setPointSummary(getPointSummary(pointTransaction));
+        const transactions = await getPointTransactions();
+        setPointSummary(getPointSummary(transactions));
+        setPointTransactions(transactions);
       } catch {
         setPointSummary(initialPointSummary);
+        setPointTransactions([]);
       }
     };
 
@@ -61,7 +73,10 @@ export const RewardRankingScreen = () => {
       <SeasonRankCard />
       <RankingList />
       <RewardShopSection />
-      <PointTransactionSection />
+      <PointTransactionSection
+        transactions={recentPointTransactions}
+        onPressViewAll={() => router.push('/rewards/transactions')}
+      />
     </Screen>
   );
 };

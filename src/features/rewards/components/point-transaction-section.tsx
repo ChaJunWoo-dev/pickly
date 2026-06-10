@@ -1,54 +1,83 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import {
+  formatPointTransactionCreatedAt,
+  type PointTransaction,
+} from '../utils/point-transactions';
 
-const transactions = [
-  { id: 'vote', title: '투표 참여 보상', amount: '+1P', time: '오늘 09:41' },
-  { id: 'bonus', title: '인기 투표 보너스', amount: '+2P', time: '오늘 09:30' },
-  { id: 'shop', title: '닉네임 컬러 구매', amount: '-500P', time: '어제 18:22' },
-];
+type PointTransactionSectionProps = {
+  onPressViewAll?: () => void;
+  showViewAll?: boolean;
+  transactions: PointTransaction[];
+};
 
-export const PointTransactionSection = () => {
+export const PointTransactionSection = ({
+  onPressViewAll,
+  showViewAll = true,
+  transactions,
+}: PointTransactionSectionProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
         <AppText variant="bodySmall" weight="bold">
           포인트 내역
         </AppText>
-        <View style={styles.viewAll}>
-          <AppText tone="muted" variant="caption" weight="semibold">
-            전체보기
-          </AppText>
-          <Ionicons
-            color={theme.colors.textMuted}
-            name="chevron-forward"
-            size={14}
-          />
-        </View>
+        {showViewAll ? (
+          <Pressable
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onPressViewAll}
+            style={styles.viewAll}
+          >
+            <AppText tone="muted" variant="caption" weight="semibold">
+              전체보기
+            </AppText>
+            <Ionicons
+              color={appTheme.colors.textMuted}
+              name="chevron-forward"
+              size={14}
+            />
+          </Pressable>
+        ) : null}
       </View>
 
       <View>
-        {transactions.map((item, index) => {
-          const isPositive = item.amount.startsWith('+');
+        {transactions.map((transaction, index) => {
+          const isPositive = transaction.amount > 0;
 
           return (
             <View
-              key={item.id}
-              style={[styles.row, index > 0 && styles.rowBorder]}
+              key={transaction.id}
+              style={[
+                styles.row,
+                index > 0 && {
+                  borderTopColor: appTheme.colors.border,
+                  borderTopWidth: 1,
+                },
+              ]}
             >
-              <AppText style={styles.title} variant="bodySmall" weight="semibold">
-                {item.title}
+              <AppText
+                style={styles.title}
+                variant="bodySmall"
+                weight="semibold"
+              >
+                {transaction.description}
               </AppText>
               <AppText
                 tone={isPositive ? 'success' : 'danger'}
                 variant="bodySmall"
                 weight="bold"
               >
-                {item.amount}
+                {isPositive ? '+' : ''}
+                {transaction.amount.toLocaleString()}P
               </AppText>
               <AppText tone="muted" variant="caption">
-                {item.time}
+                {formatPointTransactionCreatedAt(transaction.createdAt)}
               </AppText>
             </View>
           );
@@ -77,10 +106,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.md,
     minHeight: 44,
-  },
-  rowBorder: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
   },
   title: {
     flex: 1,

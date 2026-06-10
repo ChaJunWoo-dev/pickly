@@ -75,3 +75,45 @@ export const getPointSummary = (
     }
   );
 };
+
+export const formatPointTransactionCreatedAt = (createdAt: string) => {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const now = new Date();
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+  const dateStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  const diffDays = Math.floor(
+    (todayStart.getTime() - dateStart.getTime()) / (24 * 60 * 60 * 1000)
+  );
+  const timeText = new Intl.DateTimeFormat('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+
+  if (diffDays === 0) {
+    return `오늘 ${timeText}`;
+  }
+
+  if (diffDays === 1) {
+    return `어제 ${timeText}`;
+  }
+
+  const dateText = new Intl.DateTimeFormat('ko-KR', {
+    month: 'numeric',
+    day: 'numeric',
+  }).format(date);
+
+  return `${dateText} ${timeText}`;
+};
