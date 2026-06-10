@@ -1,9 +1,14 @@
-import { AppButton, AppText, Card } from '@/components';
+import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { StyleSheet, View } from 'react-native';
+import { PointSummary } from '../utils/point-transactions';
 
-export const RewardSummaryCard = () => {
+type RewardSummaryCardProps = {
+  summary: PointSummary;
+};
+
+export const RewardSummaryCard = ({ summary }: RewardSummaryCardProps) => {
   const { appTheme } = useThemeMode();
 
   return (
@@ -35,14 +40,10 @@ export const RewardSummaryCard = () => {
               style={[styles.points, { color: appTheme.colors.text }]}
               weight="bold"
             >
-              1,240P
+              {summary.currentPoints.toLocaleString()} P
             </AppText>
           </View>
         </View>
-
-        <AppButton size="sm" variant="outline">
-          충전하기
-        </AppButton>
       </View>
 
       <View
@@ -55,7 +56,7 @@ export const RewardSummaryCard = () => {
             이번 달 획득
           </AppText>
           <AppText tone="success" variant="bodySmall" weight="bold">
-            +320P
+            {summary.monthlyEarnedPoints.toLocaleString()}P
           </AppText>
         </View>
 
@@ -71,7 +72,7 @@ export const RewardSummaryCard = () => {
             이번 달 사용
           </AppText>
           <AppText tone="danger" variant="bodySmall" weight="bold">
-            -80P
+            {summary.monthlySpentPoints.toLocaleString()}P
           </AppText>
         </View>
       </View>
