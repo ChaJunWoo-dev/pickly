@@ -1,16 +1,24 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 export const SeasonRankCard = () => {
+  const { appTheme } = useThemeMode();
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
         <AppText variant="bodySmall" weight="bold">
           시즌 랭킹
         </AppText>
-        <View style={styles.seasonPill}>
+        <View
+          style={[
+            styles.seasonPill,
+            { borderColor: appTheme.colors.borderStrong },
+          ]}
+        >
           <AppText tone="muted" variant="caption" weight="semibold">
             6월 시즌
           </AppText>
@@ -22,7 +30,10 @@ export const SeasonRankCard = () => {
           <AppText tone="muted" variant="caption" weight="semibold">
             내 순위
           </AppText>
-          <AppText style={styles.rank} weight="bold">
+          <AppText
+            style={[styles.rank, { color: appTheme.colors.text }]}
+            weight="bold"
+          >
             12위
           </AppText>
           <AppText tone="success" variant="bodySmall" weight="bold">
@@ -30,10 +41,20 @@ export const SeasonRankCard = () => {
           </AppText>
         </View>
 
-        <View style={styles.verticalDivider} />
+        <View
+          style={[
+            styles.verticalDivider,
+            { backgroundColor: appTheme.colors.border },
+          ]}
+        />
 
         <View style={styles.progressBlock}>
-          <View style={styles.medal}>
+          <View
+            style={[
+              styles.medal,
+              { backgroundColor: appTheme.colors.surfaceMuted },
+            ]}
+          >
             <Ionicons
               color={theme.colors.warning}
               name="ribbon"
@@ -50,8 +71,15 @@ export const SeasonRankCard = () => {
             </AppText>
           </View>
 
-          <View style={styles.track}>
-            <View style={styles.fill} />
+          <View
+            style={[styles.track, { backgroundColor: appTheme.colors.border }]}
+          >
+            <View
+              style={[
+                styles.fill,
+                { backgroundColor: appTheme.colors.primaryStrong },
+              ]}
+            />
           </View>
         </View>
       </View>
@@ -69,7 +97,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   seasonPill: {
-    borderColor: theme.colors.borderStrong,
     borderRadius: theme.radius.full,
     borderWidth: 1,
     paddingHorizontal: theme.spacing.md,
@@ -85,12 +112,10 @@ const styles = StyleSheet.create({
     minWidth: 88,
   },
   rank: {
-    color: theme.colors.text,
     fontSize: 32,
     lineHeight: 38,
   },
   verticalDivider: {
-    backgroundColor: theme.colors.border,
     height: 72,
     width: 1,
   },
@@ -100,7 +125,6 @@ const styles = StyleSheet.create({
   },
   medal: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.full,
     height: 56,
     justifyContent: 'center',
@@ -112,13 +136,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   track: {
-    backgroundColor: theme.colors.border,
     borderRadius: theme.radius.full,
     height: 8,
     overflow: 'hidden',
   },
   fill: {
-    backgroundColor: theme.colors.primaryStrong,
     borderRadius: theme.radius.full,
     height: '100%',
     width: '58%',
