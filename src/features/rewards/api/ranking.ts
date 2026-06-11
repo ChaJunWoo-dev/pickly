@@ -1,14 +1,18 @@
+import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { ensureGuestSession } from '../../../lib/auth';
 
-export type UserRanking = {
-  userId: string;
+export type RankingRow = {
+  user_id: string;
+  nickname: string | null;
+  avatar_url: string | null;
   points: number;
   ranking: number;
 };
 
-export type RankingRow = {
-  user_id: string;
+export type UserRanking = {
+  userId: string;
+  nickname: string;
+  avatarUrl: string | null;
   points: number;
   ranking: number;
 };
@@ -16,21 +20,25 @@ export type RankingRow = {
 const mapRankingRow = (row: RankingRow): UserRanking => {
   return {
     userId: row.user_id,
+    nickname: row.nickname ?? '익명',
+    avatarUrl: row.avatar_url,
     points: row.points,
     ranking: row.ranking,
   };
 };
 
-export const getAllTimeRankings = async (): Promise<UserRanking[]> => {
+const RANKING_SELECT = `
+  user_id,
+  nickname,
+  avatar_url,
+  points,
+  ranking
+`;
+
+export const getWeeklyRankings = async (): Promise<UserRanking[]> => {
   const { data, error } = await supabase
-    .from('user_point_rankings')
-    .select(
-      `
-      user_id,
-      points,
-      ranking
-    `
-    )
+    .from('weekly_user_point_rankings')
+    .select(RANKING_SELECT)
     .order('ranking', { ascending: true });
 
   if (error) {
@@ -40,24 +48,7 @@ export const getAllTimeRankings = async (): Promise<UserRanking[]> => {
   return ((data ?? []) as RankingRow[]).map(mapRankingRow);
 };
 
-export const getWeeklyRankings = async (): Promise<UserRanking[]> => {
-  const { data, error } = await supabase
-    .from('weekly_user_point_rankings')
-    .select(
-      `user_id,
-      points,
-      ranking`
-    )
-    .order('ranking', { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return ((data ?? []) as RankingRow[]).map(mapRankingRow);
-};
-
-export const getMyRanking = async (): Promise<UserRanking | null> => {
+export const getMyWeeklyRanking = async (): Promise<UserRanking | null> => {
   const user = await ensureGuestSession();
 
   if (!user) {
@@ -65,12 +56,8 @@ export const getMyRanking = async (): Promise<UserRanking | null> => {
   }
 
   const { data, error } = await supabase
-    .from('user_point_rankings')
-    .select(
-      `user_id,
-      points,
-      ranking`
-    )
+    .from('weekly_user_point_rankings')
+    .select(RANKING_SELECT)
     .eq('user_id', user.id)
     .maybeSingle();
 

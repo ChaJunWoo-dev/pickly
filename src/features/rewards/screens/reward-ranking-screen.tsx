@@ -5,11 +5,15 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getPointTransactions } from '../api/point-transactions';
+import {
+  getMyWeeklyRanking,
+  getWeeklyRankings,
+  type UserRanking,
+} from '../api/ranking';
 import { PointTransactionSection } from '../components/point-transaction-section';
 import { RankingList } from '../components/ranking-list';
 import { RewardShopSection } from '../components/reward-shop-section';
 import { RewardSummaryCard } from '../components/reward-summary-card';
-import { SeasonRankCard } from '../components/season-rank-card';
 import {
   getPointSummary,
   type PointSummary,
@@ -23,6 +27,8 @@ const initialPointSummary: PointSummary = {
 };
 
 export const RewardRankingScreen = () => {
+  const [rankings, setRankings] = useState<UserRanking[]>([]);
+  const [myRanking, setMyRanking] = useState<UserRanking | null>(null);
   const [pointSummary, setPointSummary] =
     useState<PointSummary>(initialPointSummary);
   const [pointTransactions, setPointTransactions] = useState<
@@ -31,18 +37,27 @@ export const RewardRankingScreen = () => {
   const recentPointTransactions = pointTransactions.slice(0, 3);
 
   useEffect(() => {
-    const loadPointTransactions = async () => {
+    const loadRewardScreenData = async () => {
       try {
-        const transactions = await getPointTransactions();
+        const [transactions, ranking, myRanking] = await Promise.all([
+          getPointTransactions(),
+          getWeeklyRankings(),
+          getMyWeeklyRanking(),
+        ]);
+
         setPointSummary(getPointSummary(transactions));
         setPointTransactions(transactions);
+        setRankings(ranking);
+        setMyRanking(myRanking);
       } catch {
         setPointSummary(initialPointSummary);
         setPointTransactions([]);
+        setRankings([]);
+        setMyRanking(null);
       }
     };
 
-    loadPointTransactions();
+    void loadRewardScreenData();
   }, []);
 
   return (
@@ -70,8 +85,7 @@ export const RewardRankingScreen = () => {
       </View>
 
       <RewardSummaryCard summary={pointSummary} />
-      <SeasonRankCard />
-      <RankingList />
+      <RankingList myRanking={myRanking} rankings={rankings} />
       <RewardShopSection />
       <PointTransactionSection
         transactions={recentPointTransactions}
