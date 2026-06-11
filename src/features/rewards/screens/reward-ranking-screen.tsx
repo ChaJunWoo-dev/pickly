@@ -36,6 +36,24 @@ export const RewardRankingScreen = () => {
   >([]);
   const recentPointTransactions = pointTransactions.slice(0, 3);
 
+  const handlePurchaseSuccess = (transaction: PointTransaction) => {
+    setPointTransactions((prevTransactions) => [
+      transaction,
+      ...prevTransactions,
+    ]);
+    setPointSummary((prevSummary) => ({
+      currentPoints: prevSummary.currentPoints + transaction.amount,
+      monthlyEarnedPoints:
+        transaction.amount > 0
+          ? prevSummary.monthlyEarnedPoints + transaction.amount
+          : prevSummary.monthlyEarnedPoints,
+      monthlySpentPoints:
+        transaction.amount < 0
+          ? prevSummary.monthlySpentPoints + Math.abs(transaction.amount)
+          : prevSummary.monthlySpentPoints,
+    }));
+  };
+
   useEffect(() => {
     const loadRewardScreenData = async () => {
       try {
@@ -86,7 +104,10 @@ export const RewardRankingScreen = () => {
 
       <RewardSummaryCard summary={pointSummary} />
       <RankingList myRanking={myRanking} rankings={rankings} />
-      <RewardShopSection currentPoints={pointSummary.currentPoints} />
+      <RewardShopSection
+        currentPoints={pointSummary.currentPoints}
+        onPurchaseSuccess={handlePurchaseSuccess}
+      />
       <PointTransactionSection
         transactions={recentPointTransactions}
         onPressViewAll={() => router.push('/rewards/transactions')}

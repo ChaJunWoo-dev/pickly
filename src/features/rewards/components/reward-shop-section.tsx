@@ -1,16 +1,25 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import {
+  hasErrorCode,
+  POSTGRES_UNIQUE_VIOLATION_CODE,
+} from '@/lib/database-errors';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import {
+  purchaseNicknameChange,
+  NICKNAME_CHANGE_PRICE,
+} from '../api/purchase-nickname-change';
+import type { PointTransaction } from '../utils/point-transactions';
 import { NicknameModal } from './nickname-modal';
 
 const rewards = [
   {
     id: 'nickname',
     title: '닉네임 변경',
-    price: 1000,
+    price: NICKNAME_CHANGE_PRICE,
     icon: 'text',
     description: '랭킹과 댓글에 표시되는 이름을 바꿔요',
   },
@@ -32,11 +41,16 @@ const rewards = [
 
 type RewardShopSectionProps = {
   currentPoints: number;
+  onPurchaseSuccess?: (transaction: PointTransaction) => void;
 };
 
-export const RewardShopSection = ({ currentPoints }: RewardShopSectionProps) => {
+export const RewardShopSection = ({
+  currentPoints,
+  onPurchaseSuccess,
+}: RewardShopSectionProps) => {
   const { appTheme } = useThemeMode();
   const [isNicknameModalVisible, setIsNicknameModalVisible] = useState(false);
+  const [isPurchasingNickname, setIsPurchasingNickname] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -63,8 +77,31 @@ export const RewardShopSection = ({ currentPoints }: RewardShopSectionProps) => 
     setIsNicknameModalVisible(false);
   };
 
-  const handleSubmitNickname = () => {
-    closeNicknameModal();
+  const handleSubmitNickname = async (nickname: string) => {
+    if (isPurchasingNickname) return;
+
+    if (currentPoints < NICKNAME_CHANGE_PRICE) {
+      showToast('포인트가 부족해요');
+      return;
+    }
+
+    setIsPurchasingNickname(true);
+
+    try {
+      const transaction = await purchaseNicknameChange(nickname);
+      onPurchaseSuccess?.(transaction);
+      closeNicknameModal();
+      showToast('닉네임이 변경됐어요');
+    } catch (error) {
+      if (hasErrorCode(error, POSTGRES_UNIQUE_VIOLATION_CODE)) {
+        Alert.alert('닉네임 변경 실패', '이미 사용 중인 닉네임이에요');
+        return;
+      }
+
+      Alert.alert('닉네임 변경 실패', '닉네임을 변경하지 못했어요');
+    } finally {
+      setIsPurchasingNickname(false);
+    }
   };
 
   const handlePressReward = (reward: (typeof rewards)[number]) => {
@@ -157,6 +194,7 @@ export const RewardShopSection = ({ currentPoints }: RewardShopSectionProps) => 
       </Card>
 
       <NicknameModal
+        isSubmitting={isPurchasingNickname}
         visible={isNicknameModalVisible}
         onClose={closeNicknameModal}
         onSubmit={handleSubmitNickname}
