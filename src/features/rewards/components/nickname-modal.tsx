@@ -96,7 +96,7 @@ export const NicknameModal = ({
           style={styles.modalActionButton}
           onPress={handleSubmit}
         >
-          {NICKNAME_CHANGE_PRICE.toLocaleString()}P로 변경
+          {`${NICKNAME_CHANGE_PRICE.toLocaleString()}P로 변경`}
         </AppButton>
       </View>
     </AppModal>

@@ -1,12 +1,35 @@
 import { AppIconButton, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import {
+  getCurrentProfile,
+  type CurrentProfile,
+} from '../api/get-current-profile';
 import { ProfileActivitySummary } from '../components/profile-activity-summary';
 import { ProfileGuestCard } from '../components/profile-guest-card';
 import { ProfileMenuSection } from '../components/profile-menu-section';
 
 export const ProfileScreen = () => {
+  const [profile, setProfile] = useState<CurrentProfile | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadProfile = async () => {
+        try {
+          const nextProfile = await getCurrentProfile();
+          setProfile(nextProfile);
+        } catch {
+          setProfile(null);
+        }
+      };
+
+      void loadProfile();
+    }, [])
+  );
+
   return (
     <Screen
       scroll
@@ -31,7 +54,7 @@ export const ProfileScreen = () => {
         />
       </View>
 
-      <ProfileGuestCard />
+      <ProfileGuestCard profile={profile} />
       <ProfileActivitySummary />
       <ProfileMenuSection />
 

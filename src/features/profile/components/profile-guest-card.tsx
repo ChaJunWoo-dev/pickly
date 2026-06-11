@@ -2,19 +2,34 @@ import { AppText, Avatar, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
+import type { ImageSourcePropType } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { CurrentProfile } from '../api/get-current-profile';
 
-export const ProfileGuestCard = () => {
+type ProfileGuestCardProps = {
+  profile: CurrentProfile | null;
+};
+
+export const ProfileGuestCard = ({ profile }: ProfileGuestCardProps) => {
   const { appTheme } = useThemeMode();
+  const nickname = profile?.nickname ?? '게스트';
+  const avatarSource: ImageSourcePropType | undefined = profile?.avatarUrl
+    ? { uri: profile.avatarUrl }
+    : undefined;
 
   return (
     <Card style={styles.card}>
       <View style={styles.profileRow}>
-        <Avatar badgeIcon="ribbon" name="게스트" size={58} />
+        <Avatar
+          badgeIcon={profile?.badgeIcon ?? undefined}
+          name={nickname}
+          size={58}
+          source={avatarSource}
+        />
 
         <View style={styles.profileCopy}>
           <AppText variant="subtitle" weight="bold">
-            게스트
+            {nickname}
           </AppText>
           <AppText tone="muted" variant="bodySmall">
             로그인하면 포인트와 참여 기록을 안전하게 보관할 수 있어요.

@@ -60,10 +60,19 @@ export const PollCommentPreviewCard = ({
           <View style={styles.comments}>
             {comments.map((comment) => (
               <View key={comment.id} style={styles.commentItem}>
-                <Avatar badgeIcon="ribbon" name="익명" size="sm" />
+                <Avatar
+                  badgeIcon={comment.author.badgeIcon ?? undefined}
+                  name={comment.author.nickname}
+                  size="sm"
+                  source={
+                    comment.author.avatarUrl
+                      ? { uri: comment.author.avatarUrl }
+                      : undefined
+                  }
+                />
                 <View style={styles.commentBody}>
                   <AppText variant="caption" weight="bold">
-                    익명
+                    {comment.author.nickname}
                   </AppText>
                   <AppText tone="muted" variant="caption">
                     {comment.body}
