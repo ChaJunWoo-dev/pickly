@@ -158,7 +158,7 @@ export const PollCommentsScreen = () => {
                   index > 0 && styles.commentRowBorder,
                 ]}
               >
-                <Avatar name="익명" size="sm" />
+                <Avatar badgeIcon="ribbon" name="익명" size="sm" />
 
                 <View style={styles.commentBody}>
                   <View style={styles.commentMeta}>

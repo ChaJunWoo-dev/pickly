@@ -16,16 +16,6 @@ export const RewardShopSection = () => {
         <AppText variant="bodySmall" weight="bold">
           리워드 상점
         </AppText>
-        <View style={styles.viewAll}>
-          <AppText tone="muted" variant="caption" weight="semibold">
-            전체보기
-          </AppText>
-          <Ionicons
-            color={theme.colors.textMuted}
-            name="chevron-forward"
-            size={14}
-          />
-        </View>
       </View>
 
       <View style={styles.items}>

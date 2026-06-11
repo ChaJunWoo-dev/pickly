@@ -1,4 +1,4 @@
-import { AppText, Card } from '@/components';
+import { AppText, Avatar, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,18 +10,7 @@ export const ProfileGuestCard = () => {
   return (
     <Card style={styles.card}>
       <View style={styles.profileRow}>
-        <View
-          style={[
-            styles.avatar,
-            { backgroundColor: appTheme.colors.primarySoft },
-          ]}
-        >
-          <Ionicons
-            color={appTheme.colors.primaryStrong}
-            name="person-outline"
-            size={28}
-          />
-        </View>
+        <Avatar badgeIcon="ribbon" name="게스트" size={58} />
 
         <View style={styles.profileCopy}>
           <AppText variant="subtitle" weight="bold">
@@ -61,13 +50,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 58,
-    justifyContent: 'center',
-    width: 58,
   },
   profileCopy: {
     flex: 1,
