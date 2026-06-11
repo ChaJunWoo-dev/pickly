@@ -86,7 +86,7 @@ export const RewardRankingScreen = () => {
 
       <RewardSummaryCard summary={pointSummary} />
       <RankingList myRanking={myRanking} rankings={rankings} />
-      <RewardShopSection />
+      <RewardShopSection currentPoints={pointSummary.currentPoints} />
       <PointTransactionSection
         transactions={recentPointTransactions}
         onPressViewAll={() => router.push('/rewards/transactions')}
