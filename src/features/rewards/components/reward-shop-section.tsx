@@ -20,6 +20,8 @@ import type { RewardItem } from '../utils/reward-items';
 import { NicknameModal } from './nickname-modal';
 import { RewardBadgeModal } from './reward-badge-modal';
 
+const BADGE_REVEAL_DURATION = 2000;
+
 type RewardShopSectionProps = {
   rewardItems: RewardItem[];
   currentPoints: number;
@@ -86,7 +88,13 @@ export const RewardShopSection = ({
     setIsPurchasingBadge(true);
 
     try {
-      const result = await purchaseRandomBadge();
+      const [result] = await Promise.all([
+        purchaseRandomBadge(),
+        new Promise((resolve) => {
+          setTimeout(resolve, BADGE_REVEAL_DURATION);
+        }),
+      ]);
+
       onPurchaseSuccess?.(result.transaction);
       setRevealedBadge(result.badge);
     } catch {

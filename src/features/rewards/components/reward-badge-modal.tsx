@@ -8,8 +8,13 @@ import {
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { RewardBadge } from '../utils/reward-badge';
+
+const BADGE_REVEAL_DURATION = 2000;
+const BADGE_ROLLING_MIN_DELAY = 45;
+const BADGE_ROLLING_MAX_DELAY = 240;
 
 type RewardBadgeModalProps = {
   badges: RewardBadge[];
@@ -33,8 +38,47 @@ export const RewardBadgeModal = ({
   onPurchase,
 }: RewardBadgeModalProps) => {
   const { appTheme } = useThemeMode();
+  const [rollingBadgeIndex, setRollingBadgeIndex] = useState(0);
+  const rollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasBadges = badges.length > 0;
   const isRevealed = Boolean(revealedBadge);
+  const rollingBadge = hasBadges ? badges[rollingBadgeIndex % badges.length] : null;
+
+  useEffect(() => {
+    if (rollingTimerRef.current) {
+      clearTimeout(rollingTimerRef.current);
+    }
+
+    if (!isPurchasing || badges.length === 0) {
+      return;
+    }
+
+    const startedAt = Date.now();
+
+    const roll = () => {
+      const elapsed = Date.now() - startedAt;
+      const progress = Math.min(elapsed / BADGE_REVEAL_DURATION, 1);
+      const nextDelay =
+        BADGE_ROLLING_MIN_DELAY +
+        (BADGE_ROLLING_MAX_DELAY - BADGE_ROLLING_MIN_DELAY) *
+          progress *
+          progress;
+
+      setRollingBadgeIndex((prevIndex) => (prevIndex + 1) % badges.length);
+
+      if (progress < 1) {
+        rollingTimerRef.current = setTimeout(roll, nextDelay);
+      }
+    };
+
+    rollingTimerRef.current = setTimeout(roll, BADGE_ROLLING_MIN_DELAY);
+
+    return () => {
+      if (rollingTimerRef.current) {
+        clearTimeout(rollingTimerRef.current);
+      }
+    };
+  }, [badges.length, isPurchasing]);
 
   return (
     <AppModal visible={visible} onClose={onClose}>
@@ -44,21 +88,21 @@ export const RewardBadgeModal = ({
             <View
               style={[
                 styles.revealIcon,
-                { backgroundColor: appTheme.colors.rewardSoft },
+                { backgroundColor: appTheme.colors.secondarySoft },
               ]}
             >
               <Ionicons
-                color={appTheme.colors.reward}
-                name="sparkles"
-                size={44}
+                color={appTheme.colors.secondary}
+                name={rollingBadge?.icon ?? 'sparkles'}
+                size={46}
               />
             </View>
             <View style={styles.revealCopy}>
               <AppText align="center" variant="bodySmall" weight="bold">
-                배지를 뽑는 중이에요
+                배지를 고르는 중이에요
               </AppText>
               <AppText align="center" tone="muted" variant="caption">
-                어떤 배지가 나올까요?
+                {rollingBadge?.label ?? '어떤 배지가 나올까요?'}
               </AppText>
             </View>
           </View>
