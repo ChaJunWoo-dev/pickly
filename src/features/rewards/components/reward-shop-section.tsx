@@ -12,9 +12,13 @@ import {
   NICKNAME_CHANGE_PRICE,
   purchaseNicknameChange,
 } from '../api/purchase-nickname-change';
+import { purchaseRandomBadge } from '../api/purchase-random-badge';
+import { getRewardBadges } from '../api/reward-badge';
 import type { PointTransaction } from '../utils/point-transactions';
-import { RewardItem } from '../utils/reward-items';
+import type { RewardBadge } from '../utils/reward-badge';
+import type { RewardItem } from '../utils/reward-items';
 import { NicknameModal } from './nickname-modal';
+import { RewardBadgeModal } from './reward-badge-modal';
 
 type RewardShopSectionProps = {
   rewardItems: RewardItem[];
@@ -30,8 +34,16 @@ export const RewardShopSection = ({
   const { appTheme } = useThemeMode();
   const [isNicknameModalVisible, setIsNicknameModalVisible] = useState(false);
   const [isPurchasingNickname, setIsPurchasingNickname] = useState(false);
+  const [badges, setBadges] = useState<RewardBadge[]>([]);
+  const [isBadgeModalVisible, setIsBadgeModalVisible] = useState(false);
+  const [isLoadingBadges, setIsLoadingBadges] = useState(false);
+  const [isPurchasingBadge, setIsPurchasingBadge] = useState(false);
+  const [revealedBadge, setRevealedBadge] = useState<RewardBadge | null>(null);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const randomBadgeItem = rewardItems.find(
+    (item) => item.type === 'random_badge'
+  );
 
   useEffect(() => {
     return () => {
@@ -54,6 +66,34 @@ export const RewardShopSection = ({
 
   const closeNicknameModal = () => {
     setIsNicknameModalVisible(false);
+  };
+
+  const closeBadgeModal = () => {
+    setIsBadgeModalVisible(false);
+    setIsPurchasingBadge(false);
+    setRevealedBadge(null);
+  };
+
+  const handlePurchaseBadge = async () => {
+    if (isPurchasingBadge || badges.length === 0) return;
+
+    if (currentPoints < (randomBadgeItem?.price ?? 0)) {
+      showToast('포인트가 부족해요');
+      return;
+    }
+
+    setRevealedBadge(null);
+    setIsPurchasingBadge(true);
+
+    try {
+      const result = await purchaseRandomBadge();
+      onPurchaseSuccess?.(result.transaction);
+      setRevealedBadge(result.badge);
+    } catch {
+      Alert.alert('배지 구매 실패', '랜덤 배지를 구매하지 못했어요');
+    } finally {
+      setIsPurchasingBadge(false);
+    }
   };
 
   const handleSubmitNickname = async (nickname: string) => {
@@ -83,7 +123,7 @@ export const RewardShopSection = ({
     }
   };
 
-  const handlePressReward = (reward: RewardItem[][number]) => {
+  const handlePressReward = async (reward: RewardItem[][number]) => {
     if (currentPoints < reward.price) {
       showToast('포인트가 부족해요');
       return;
@@ -91,6 +131,25 @@ export const RewardShopSection = ({
 
     if (reward.type === 'nickname_change') {
       setIsNicknameModalVisible(true);
+    }
+
+    if (reward.type === 'random_badge') {
+      setIsBadgeModalVisible(true);
+
+      if (badges.length > 0) {
+        return;
+      }
+
+      setIsLoadingBadges(true);
+
+      try {
+        const nextBadges = await getRewardBadges();
+        setBadges(nextBadges);
+      } catch {
+        setBadges([]);
+      } finally {
+        setIsLoadingBadges(false);
+      }
     }
   };
 
@@ -172,6 +231,16 @@ export const RewardShopSection = ({
         visible={isNicknameModalVisible}
         onClose={closeNicknameModal}
         onSubmit={handleSubmitNickname}
+      />
+      <RewardBadgeModal
+        badges={badges}
+        isLoading={isLoadingBadges}
+        isPurchasing={isPurchasingBadge}
+        price={randomBadgeItem?.price ?? 0}
+        revealedBadge={revealedBadge}
+        visible={isBadgeModalVisible}
+        onClose={closeBadgeModal}
+        onPurchase={handlePurchaseBadge}
       />
     </>
   );
