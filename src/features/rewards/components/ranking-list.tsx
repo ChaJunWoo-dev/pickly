@@ -3,7 +3,7 @@ import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import type { UserRanking } from '../api/ranking';
+import type { UserRanking } from '../utils/ranking';
 
 type RankingListProps = {
   myRanking: UserRanking | null;

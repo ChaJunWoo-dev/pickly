@@ -5,11 +5,8 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getPointTransactions } from '../api/point-transactions';
-import {
-  getMyWeeklyRanking,
-  getWeeklyRankings,
-  type UserRanking,
-} from '../api/ranking';
+import { getMyWeeklyRanking, getWeeklyRankings } from '../api/ranking';
+import { getRewardItems } from '../api/reward-items';
 import { PointTransactionSection } from '../components/point-transaction-section';
 import { RankingList } from '../components/ranking-list';
 import { RewardShopSection } from '../components/reward-shop-section';
@@ -19,6 +16,8 @@ import {
   type PointSummary,
   type PointTransaction,
 } from '../utils/point-transactions';
+import { type UserRanking } from '../utils/ranking';
+import { RewardItem } from '../utils/reward-items';
 
 const initialPointSummary: PointSummary = {
   currentPoints: 0,
@@ -34,6 +33,7 @@ export const RewardRankingScreen = () => {
   const [pointTransactions, setPointTransactions] = useState<
     PointTransaction[]
   >([]);
+  const [rewardItems, setRewardItems] = useState<RewardItem[]>([]);
   const recentPointTransactions = pointTransactions.slice(0, 3);
 
   const handlePurchaseSuccess = (transaction: PointTransaction) => {
@@ -75,7 +75,17 @@ export const RewardRankingScreen = () => {
       }
     };
 
+    const loadRewardItems = async () => {
+      try {
+        const nextRewardItems = await getRewardItems();
+        setRewardItems(nextRewardItems);
+      } catch {
+        setRewardItems([]);
+      }
+    };
+
     void loadRewardScreenData();
+    void loadRewardItems();
   }, []);
 
   return (
@@ -105,6 +115,7 @@ export const RewardRankingScreen = () => {
       <RewardSummaryCard summary={pointSummary} />
       <RankingList myRanking={myRanking} rankings={rankings} />
       <RewardShopSection
+        rewardItems={rewardItems}
         currentPoints={pointSummary.currentPoints}
         onPurchaseSuccess={handlePurchaseSuccess}
       />

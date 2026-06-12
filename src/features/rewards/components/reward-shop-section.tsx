@@ -9,42 +9,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import {
-  purchaseNicknameChange,
   NICKNAME_CHANGE_PRICE,
+  purchaseNicknameChange,
 } from '../api/purchase-nickname-change';
 import type { PointTransaction } from '../utils/point-transactions';
+import { RewardItem } from '../utils/reward-items';
 import { NicknameModal } from './nickname-modal';
 
-const rewards = [
-  {
-    id: 'nickname',
-    title: '닉네임 변경',
-    price: NICKNAME_CHANGE_PRICE,
-    icon: 'text',
-    description: '랭킹과 댓글에 표시되는 이름을 바꿔요',
-  },
-  {
-    id: 'badge',
-    title: '랜덤 배지',
-    price: 300,
-    icon: 'shield-checkmark',
-    description: '아바타 옆에 표시될 배지를 무작위로 받아요',
-  },
-  {
-    id: 'booster',
-    title: '투표 부스터',
-    price: 800,
-    icon: 'flash',
-    description: '투표 관련 활동 시 포인트를 추가로 받아요',
-  },
-];
-
 type RewardShopSectionProps = {
+  rewardItems: RewardItem[];
   currentPoints: number;
   onPurchaseSuccess?: (transaction: PointTransaction) => void;
 };
 
 export const RewardShopSection = ({
+  rewardItems,
   currentPoints,
   onPurchaseSuccess,
 }: RewardShopSectionProps) => {
@@ -104,15 +83,13 @@ export const RewardShopSection = ({
     }
   };
 
-  const handlePressReward = (reward: (typeof rewards)[number]) => {
+  const handlePressReward = (reward: RewardItem[][number]) => {
     if (currentPoints < reward.price) {
       showToast('포인트가 부족해요');
       return;
     }
 
-    const rewardId = reward.id;
-
-    if (rewardId === 'nickname') {
+    if (reward.type === 'nickname_change') {
       setIsNicknameModalVisible(true);
     }
   };
@@ -127,7 +104,7 @@ export const RewardShopSection = ({
         </View>
 
         <View style={styles.items}>
-          {rewards.map((item) => {
+          {rewardItems.map((item) => {
             const isUnavailable = currentPoints < item.price;
 
             return (
@@ -151,7 +128,7 @@ export const RewardShopSection = ({
                   color={
                     isUnavailable
                       ? appTheme.colors.textSubtle
-                      : item.id === 'badge'
+                      : item.type === 'random_badge'
                         ? appTheme.colors.secondary
                         : appTheme.colors.reward
                   }
@@ -181,10 +158,7 @@ export const RewardShopSection = ({
 
         {!!toastMessage && (
           <View
-            style={[
-              styles.toast,
-              { backgroundColor: appTheme.colors.text },
-            ]}
+            style={[styles.toast, { backgroundColor: appTheme.colors.text }]}
           >
             <AppText tone="inverse" variant="caption" weight="semibold">
               {toastMessage}
