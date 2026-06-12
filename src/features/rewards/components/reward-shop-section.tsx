@@ -25,7 +25,10 @@ const BADGE_REVEAL_DURATION = 2000;
 type RewardShopSectionProps = {
   rewardItems: RewardItem[];
   currentPoints: number;
-  onPurchaseSuccess?: (transaction: PointTransaction) => void;
+  onPurchaseSuccess?: (purchase: {
+    badge?: RewardBadge;
+    transaction: PointTransaction;
+  }) => void;
 };
 
 export const RewardShopSection = ({
@@ -95,7 +98,10 @@ export const RewardShopSection = ({
         }),
       ]);
 
-      onPurchaseSuccess?.(result.transaction);
+      onPurchaseSuccess?.({
+        badge: result.badge,
+        transaction: result.transaction,
+      });
       setRevealedBadge(result.badge);
     } catch {
       Alert.alert('배지 구매 실패', '랜덤 배지를 구매하지 못했어요');
@@ -116,7 +122,7 @@ export const RewardShopSection = ({
 
     try {
       const transaction = await purchaseNicknameChange(nickname);
-      onPurchaseSuccess?.(transaction);
+      onPurchaseSuccess?.({ transaction });
       closeNicknameModal();
       showToast('닉네임이 변경됐어요');
     } catch (error) {

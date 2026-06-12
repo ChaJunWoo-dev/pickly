@@ -17,7 +17,8 @@ import {
   type PointTransaction,
 } from '../utils/point-transactions';
 import { type UserRanking } from '../utils/ranking';
-import { RewardItem } from '../utils/reward-items';
+import type { RewardBadge } from '../utils/reward-badge';
+import type { RewardItem } from '../utils/reward-items';
 
 const initialPointSummary: PointSummary = {
   currentPoints: 0,
@@ -35,8 +36,38 @@ export const RewardRankingScreen = () => {
   >([]);
   const [rewardItems, setRewardItems] = useState<RewardItem[]>([]);
   const recentPointTransactions = pointTransactions.slice(0, 3);
+  const myRankingUserId = myRanking?.userId;
 
-  const handlePurchaseSuccess = (transaction: PointTransaction) => {
+  const updateMyRankingBadge = (badge: RewardBadge) => {
+    setMyRanking((prevRanking) => {
+      if (!prevRanking) return prevRanking;
+
+      return {
+        ...prevRanking,
+        badgeIcon: badge.icon,
+      };
+    });
+    setRankings((prevRankings) =>
+      prevRankings.map((ranking) => {
+        if (ranking.userId !== myRankingUserId) {
+          return ranking;
+        }
+
+        return {
+          ...ranking,
+          badgeIcon: badge.icon,
+        };
+      })
+    );
+  };
+
+  const handlePurchaseSuccess = ({
+    badge,
+    transaction,
+  }: {
+    badge?: RewardBadge;
+    transaction: PointTransaction;
+  }) => {
     setPointTransactions((prevTransactions) => [
       transaction,
       ...prevTransactions,
@@ -52,6 +83,10 @@ export const RewardRankingScreen = () => {
           ? prevSummary.monthlySpentPoints + Math.abs(transaction.amount)
           : prevSummary.monthlySpentPoints,
     }));
+
+    if (badge) {
+      updateMyRankingBadge(badge);
+    }
   };
 
   useEffect(() => {
