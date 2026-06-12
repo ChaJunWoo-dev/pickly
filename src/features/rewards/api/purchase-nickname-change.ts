@@ -23,59 +23,19 @@ export const purchaseNicknameChange = async (
     throw new Error('Nickname is empty.');
   }
 
-  const { data: previousProfile } = await supabase
-    .from('profiles')
-    .select('nickname')
-    .eq('id', user.id)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('purchase_nickname_change', {
+    p_nickname: trimmedNickname,
+  });
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      nickname: trimmedNickname,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', user.id)
-    .select('id')
-    .single();
-
-  if (profileError) {
-    throw profileError;
+  if (error) {
+    throw error;
   }
 
-  const { data, error: pointTransactionError } = await supabase
-    .from('point_transactions')
-    .insert({
-      amount: -NICKNAME_CHANGE_PRICE,
-      description: '닉네임 변경',
-      poll_id: null,
-      type: 'shop_purchase',
-      user_id: user.id,
-    })
-    .select(
-      `
-      id,
-      user_id,
-      poll_id,
-      amount,
-      type,
-      description,
-      created_at
-    `
-    )
-    .single();
+  const [pointTransaction] = (data ?? []) as PointTransactionRow[];
 
-  if (pointTransactionError) {
-    await supabase
-      .from('profiles')
-      .update({
-        nickname: previousProfile?.nickname ?? null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
-
-    throw pointTransactionError;
+  if (!pointTransaction) {
+    throw new Error('Point transaction is missing.');
   }
 
-  return mapPointTransactionRow(data as PointTransactionRow);
+  return mapPointTransactionRow(pointTransaction);
 };

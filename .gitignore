@@ -43,4 +43,6 @@ app-example
 /android
 
 docs/
+
 .env
+.sql
