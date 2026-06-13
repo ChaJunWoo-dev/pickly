@@ -1,6 +1,7 @@
 import { AppText, Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import { getCurrentPointSummary } from '@/features/rewards/api/point-summary';
 import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
@@ -25,6 +26,7 @@ export const HomeFeedScreen = () => {
   const [isLoadingPolls, setIsLoadingPolls] = useState(true);
   const [votingPollId, setVotingPollId] = useState<string | null>(null);
   const [activeFeedTab, setActiveFeedTab] = useState<FeedTab>('popular');
+  const [currentPoints, setCurrentPoints] = useState(0);
 
   const loadPolls = useCallback(async () => {
     setIsLoadingPolls(true);
@@ -40,11 +42,21 @@ export const HomeFeedScreen = () => {
     }
   }, [activeFeedTab]);
 
+  const loadCurrentPoints = useCallback(async () => {
+    try {
+      const pointSummary = await getCurrentPointSummary();
+      setCurrentPoints(pointSummary.currentPoints);
+    } catch {
+      setCurrentPoints(0);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isFocused) return;
 
     void loadPolls();
-  }, [isFocused, loadPolls]);
+    void loadCurrentPoints();
+  }, [isFocused, loadCurrentPoints, loadPolls]);
 
   const handleOpenPoll = (pollId: string) => {
     router.push({
@@ -71,7 +83,7 @@ export const HomeFeedScreen = () => {
     try {
       await submitPollVote(pollId, optionId);
 
-      await loadPolls();
+      await Promise.all([loadPolls(), loadCurrentPoints()]);
     } catch (error) {
       if (hasErrorCode(error, POSTGRES_UNIQUE_VIOLATION_CODE)) {
         Alert.alert(
@@ -128,7 +140,7 @@ export const HomeFeedScreen = () => {
             style={[styles.headerPointsText, { color: appTheme.colors.text }]}
             weight="bold"
           >
-            1,280P
+            {currentPoints.toLocaleString()}P
           </AppText>
         </View>
       </View>
@@ -158,14 +170,16 @@ export const HomeFeedScreen = () => {
           </Card>
         ) : null}
 
-        {polls.map((poll) => (
-          <PollCard
-            key={poll.id}
-            onOpen={handleOpenPoll}
-            onVote={handleVote}
-            poll={poll}
-          />
-        ))}
+        {!isLoadingPolls
+          ? polls.map((poll) => (
+              <PollCard
+                key={poll.id}
+                onOpen={handleOpenPoll}
+                onVote={handleVote}
+                poll={poll}
+              />
+            ))
+          : null}
       </View>
     </Screen>
   );

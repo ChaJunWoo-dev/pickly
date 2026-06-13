@@ -27,6 +27,10 @@ const RootStack = () => {
           name="profile/settings"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="rewards/transactions"
+          options={{ headerShown: false }}
+        />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>

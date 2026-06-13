@@ -22,6 +22,7 @@ export type PollFeedRow = {
   reward_points: number;
   created_at: string;
   expires_at: string;
+  boosted_until: string | null;
   is_closed: boolean;
   poll_options: PollOptionRow[];
   poll_votes: PollVoteRow[];
@@ -43,6 +44,7 @@ export const mapPollFeedRowToCardData = (
     rewardPoints: poll.reward_points,
     participantCount,
     expiresAt: poll.expires_at,
+    boostedUntil: poll.boosted_until,
     hasVoted: Boolean(selectedOptionId),
     isClosed: poll.is_closed || isPollExpired(poll.expires_at),
     selectedOptionId,
