@@ -165,6 +165,9 @@ export const PollDetailScreen = () => {
 
   const selectedOptionId = poll.selectedOptionId ?? null;
   const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
+  const isBoosted = poll.boostedUntil
+    ? new Date(poll.boostedUntil).getTime() > Date.now()
+    : false;
 
   return (
     <Screen
@@ -181,7 +184,26 @@ export const PollDetailScreen = () => {
       />
 
       <View style={styles.metaRow}>
-        <PollCategoryPill categoryId={poll.categoryId} />
+        <View style={styles.metaLeft}>
+          <PollCategoryPill categoryId={poll.categoryId} />
+          {isBoosted ? (
+            <View
+              style={[
+                styles.boostBadge,
+                { backgroundColor: appTheme.colors.rewardSoft },
+              ]}
+            >
+              <Ionicons
+                color={appTheme.colors.reward}
+                name="flash"
+                size={13}
+              />
+              <AppText tone="reward" variant="caption" weight="bold">
+                부스터 적용중
+              </AppText>
+            </View>
+          ) : null}
+        </View>
         <PollTimer expiresAt={poll.expiresAt} />
       </View>
 
@@ -233,6 +255,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  metaLeft: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 1,
+    gap: theme.spacing.xs,
+  },
+  boostBadge: {
+    alignItems: 'center',
+    borderRadius: theme.radius.full,
+    flexDirection: 'row',
+    gap: theme.spacing.xxs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xxs,
   },
   titleBlock: {
     gap: theme.spacing.xs,

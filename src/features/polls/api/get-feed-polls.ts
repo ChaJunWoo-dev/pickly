@@ -12,6 +12,7 @@ export const getFeedPolls = async (
   activeFeedTab: FeedTab
 ): Promise<PollCardData[]> => {
   const user = await ensureGuestSession();
+  const now = Date.now();
 
   const { data, error } = await supabase
     .from('polls')
@@ -27,10 +28,30 @@ export const getFeedPolls = async (
   }
 
   const pollRows = (data ?? []) as PollFeedRow[];
-  const sortedPollRows =
-    activeFeedTab === 'popular'
-      ? [...pollRows].sort((a, b) => b.poll_votes.length - a.poll_votes.length)
-      : pollRows;
+  const sortedPollRows = [...pollRows].sort((a, b) => {
+    const isABoosted = a.boosted_until
+      ? new Date(a.boosted_until).getTime() > now
+      : false;
+    const isBBoosted = b.boosted_until
+      ? new Date(b.boosted_until).getTime() > now
+      : false;
+
+    if (isABoosted !== isBBoosted) {
+      return isABoosted ? -1 : 1;
+    }
+
+    if (activeFeedTab === 'popular') {
+      return b.poll_votes.length - a.poll_votes.length;
+    }
+
+    if (activeFeedTab === 'closingSoon') {
+      return (
+        new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
+      );
+    }
+
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   return sortedPollRows.map((poll) =>
     mapPollFeedRowToCardData(poll, user?.id)

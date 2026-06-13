@@ -1,6 +1,7 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 import { isPollExpired } from '../utils/poll-deadline';
@@ -23,6 +24,7 @@ export type PollCardData = {
   rewardPoints: number;
   participantCount: number;
   expiresAt: string;
+  boostedUntil?: string | null;
   hasVoted?: boolean;
   isClosed: boolean;
   selectedOptionId?: string;
@@ -38,11 +40,33 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
   const { appTheme } = useThemeMode();
   const isPollClosed = poll.isClosed || isPollExpired(poll.expiresAt);
   const isVoteDisabled = isPollClosed || poll.hasVoted;
+  const isBoosted = poll.boostedUntil
+    ? new Date(poll.boostedUntil).getTime() > Date.now()
+    : false;
 
   return (
     <Card elevated style={styles.card}>
       <View style={styles.header}>
-        <PollCategoryPill categoryId={poll.categoryId} />
+        <View style={styles.headerMeta}>
+          <PollCategoryPill categoryId={poll.categoryId} />
+          {isBoosted ? (
+            <View
+              style={[
+                styles.boostBadge,
+                { backgroundColor: appTheme.colors.rewardSoft },
+              ]}
+            >
+              <Ionicons
+                color={appTheme.colors.reward}
+                name="flash"
+                size={13}
+              />
+              <AppText tone="reward" variant="caption" weight="bold">
+                부스터 적용중
+              </AppText>
+            </View>
+          ) : null}
+        </View>
         <PollTimer expiresAt={poll.expiresAt} />
       </View>
 
@@ -96,6 +120,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  headerMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 1,
+    gap: theme.spacing.xs,
+  },
+  boostBadge: {
+    alignItems: 'center',
+    borderRadius: theme.radius.full,
+    flexDirection: 'row',
+    gap: theme.spacing.xxs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xxs,
   },
   rewardPill: {
     borderRadius: theme.radius.full,
