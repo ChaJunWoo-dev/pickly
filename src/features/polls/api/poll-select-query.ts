@@ -5,6 +5,7 @@ export const POLL_WITH_OPTIONS_AND_VOTES_SELECT = `
   reward_points,
   created_at,
   expires_at,
+  boosted_until,
   is_closed,
   poll_options (
     id,

@@ -1,3 +1,4 @@
+import { createDefaultProfile } from '@/features/profile/api/create-default-profile';
 import { supabase } from './supabase';
 
 export const ensureGuestSession = async () => {
@@ -12,9 +13,11 @@ export const ensureGuestSession = async () => {
 
   const { data, error } = await supabase.auth.signInAnonymously();
 
-  if (error) {
+  if (error || !data.user) {
     return null;
   }
+
+  await createDefaultProfile(data.user.id);
 
   return data.user;
 };

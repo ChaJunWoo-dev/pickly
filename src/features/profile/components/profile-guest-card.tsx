@@ -1,31 +1,35 @@
-import { AppText, Card } from '@/components';
+import { AppText, Avatar, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
+import type { ImageSourcePropType } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { CurrentProfile } from '../api/get-current-profile';
 
-export const ProfileGuestCard = () => {
+type ProfileGuestCardProps = {
+  profile: CurrentProfile | null;
+};
+
+export const ProfileGuestCard = ({ profile }: ProfileGuestCardProps) => {
   const { appTheme } = useThemeMode();
+  const nickname = profile?.nickname ?? '게스트';
+  const avatarSource: ImageSourcePropType | undefined = profile?.avatarUrl
+    ? { uri: profile.avatarUrl }
+    : undefined;
 
   return (
     <Card style={styles.card}>
       <View style={styles.profileRow}>
-        <View
-          style={[
-            styles.avatar,
-            { backgroundColor: appTheme.colors.primarySoft },
-          ]}
-        >
-          <Ionicons
-            color={appTheme.colors.primaryStrong}
-            name="person-outline"
-            size={28}
-          />
-        </View>
+        <Avatar
+          badgeIcon={profile?.badgeIcon ?? undefined}
+          name={nickname}
+          size={58}
+          source={avatarSource}
+        />
 
         <View style={styles.profileCopy}>
           <AppText variant="subtitle" weight="bold">
-            게스트
+            {nickname}
           </AppText>
           <AppText tone="muted" variant="bodySmall">
             로그인하면 포인트와 참여 기록을 안전하게 보관할 수 있어요.
@@ -61,13 +65,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 58,
-    justifyContent: 'center',
-    width: 58,
   },
   profileCopy: {
     flex: 1,

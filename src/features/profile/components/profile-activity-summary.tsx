@@ -2,13 +2,23 @@ import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { StyleSheet, View } from 'react-native';
 
-const stats = [
-  { id: 'votes', label: '참여한 투표', value: '18' },
-  { id: 'created', label: '만든 투표', value: '3' },
-  { id: 'points', label: '보유 포인트', value: '1,240P' },
-];
+type ProfileActivitySummaryProps = {
+  currentPoints: number;
+};
 
-export const ProfileActivitySummary = () => {
+export const ProfileActivitySummary = ({
+  currentPoints,
+}: ProfileActivitySummaryProps) => {
+  const stats = [
+    { id: 'votes', label: '참여한 투표', value: '18' },
+    { id: 'created', label: '만든 투표', value: '3' },
+    {
+      id: 'points',
+      label: '보유 포인트',
+      value: `${currentPoints.toLocaleString()}P`,
+    },
+  ];
+
   return (
     <Card style={styles.card}>
       {stats.map((stat, index) => (

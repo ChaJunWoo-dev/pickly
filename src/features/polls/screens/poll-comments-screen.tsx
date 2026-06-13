@@ -158,12 +158,21 @@ export const PollCommentsScreen = () => {
                   index > 0 && styles.commentRowBorder,
                 ]}
               >
-                <Avatar name="익명" size="sm" />
+                <Avatar
+                  badgeIcon={item.author.badgeIcon ?? undefined}
+                  name={item.author.nickname}
+                  size="sm"
+                  source={
+                    item.author.avatarUrl
+                      ? { uri: item.author.avatarUrl }
+                      : undefined
+                  }
+                />
 
                 <View style={styles.commentBody}>
                   <View style={styles.commentMeta}>
                     <AppText variant="caption" weight="bold">
-                      익명
+                      {item.author.nickname}
                     </AppText>
                     <AppText tone="subtle" variant="caption">
                       {formatCommentCreatedAt(item.createdAt)}
