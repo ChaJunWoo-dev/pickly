@@ -1,5 +1,6 @@
 import { AppIconButton, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { getCurrentPointSummary } from '@/features/rewards/api/point-summary';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -14,15 +15,21 @@ import { ProfileMenuSection } from '../components/profile-menu-section';
 
 export const ProfileScreen = () => {
   const [profile, setProfile] = useState<CurrentProfile | null>(null);
+  const [currentPoints, setCurrentPoints] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       const loadProfile = async () => {
         try {
-          const nextProfile = await getCurrentProfile();
+          const [nextProfile, pointSummary] = await Promise.all([
+            getCurrentProfile(),
+            getCurrentPointSummary(),
+          ]);
           setProfile(nextProfile);
+          setCurrentPoints(pointSummary.currentPoints);
         } catch {
           setProfile(null);
+          setCurrentPoints(0);
         }
       };
 
@@ -55,7 +62,7 @@ export const ProfileScreen = () => {
       </View>
 
       <ProfileGuestCard profile={profile} />
-      <ProfileActivitySummary />
+      <ProfileActivitySummary currentPoints={currentPoints} />
       <ProfileMenuSection />
 
       <View style={styles.notice}>
