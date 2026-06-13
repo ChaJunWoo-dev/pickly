@@ -8,17 +8,21 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { getBoostablePolls } from '../api/boostable-polls';
 import {
   NICKNAME_CHANGE_PRICE,
   purchaseNicknameChange,
 } from '../api/purchase-nickname-change';
 import { purchaseRandomBadge } from '../api/purchase-random-badge';
+import { purchaseVoteBooster } from '../api/purchase-vote-booster';
 import { getRewardBadges } from '../api/reward-badge';
 import type { PointTransaction } from '../utils/point-transactions';
 import type { RewardBadge } from '../utils/reward-badge';
+import type { BoostablePoll } from '../utils/boostable-polls';
 import type { RewardItem } from '../utils/reward-items';
 import { NicknameModal } from './nickname-modal';
 import { RewardBadgeModal } from './reward-badge-modal';
+import { VoteBoosterModal } from './vote-booster-modal';
 
 const BADGE_REVEAL_DURATION = 2000;
 
@@ -44,10 +48,21 @@ export const RewardShopSection = ({
   const [isLoadingBadges, setIsLoadingBadges] = useState(false);
   const [isPurchasingBadge, setIsPurchasingBadge] = useState(false);
   const [revealedBadge, setRevealedBadge] = useState<RewardBadge | null>(null);
+  const [boostablePolls, setBoostablePolls] = useState<BoostablePoll[]>([]);
+  const [isBoosterModalVisible, setIsBoosterModalVisible] = useState(false);
+  const [isLoadingBoostablePolls, setIsLoadingBoostablePolls] =
+    useState(false);
+  const [isPurchasingBooster, setIsPurchasingBooster] = useState(false);
+  const [selectedBoosterPollId, setSelectedBoosterPollId] = useState<
+    string | null
+  >(null);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const randomBadgeItem = rewardItems.find(
     (item) => item.type === 'random_badge'
+  );
+  const voteBoosterItem = rewardItems.find(
+    (item) => item.type === 'vote_booster'
   );
 
   useEffect(() => {
@@ -77,6 +92,46 @@ export const RewardShopSection = ({
     setIsBadgeModalVisible(false);
     setIsPurchasingBadge(false);
     setRevealedBadge(null);
+  };
+
+  const closeBoosterModal = () => {
+    setIsBoosterModalVisible(false);
+    setIsPurchasingBooster(false);
+    setSelectedBoosterPollId(null);
+  };
+
+  const handlePurchaseBooster = async () => {
+    if (!selectedBoosterPollId || isPurchasingBooster) return;
+
+    if (currentPoints < (voteBoosterItem?.price ?? 0)) {
+      showToast('포인트가 부족해요');
+      return;
+    }
+
+    setIsPurchasingBooster(true);
+
+    try {
+      const transaction = await purchaseVoteBooster(selectedBoosterPollId);
+      onPurchaseSuccess?.({ transaction });
+      setBoostablePolls((prevPolls) =>
+        prevPolls.map((poll) =>
+          poll.id === selectedBoosterPollId
+            ? {
+                ...poll,
+                boostedUntil: new Date(
+                  Date.now() + 6 * 60 * 60 * 1000
+                ).toISOString(),
+              }
+            : poll
+        )
+      );
+      closeBoosterModal();
+      showToast('투표 부스터가 적용됐어요');
+    } catch {
+      Alert.alert('부스터 구매 실패', '투표 부스터를 적용하지 못했어요');
+    } finally {
+      setIsPurchasingBooster(false);
+    }
   };
 
   const handlePurchaseBadge = async () => {
@@ -163,6 +218,25 @@ export const RewardShopSection = ({
         setBadges([]);
       } finally {
         setIsLoadingBadges(false);
+      }
+    }
+
+    if (reward.type === 'vote_booster') {
+      setIsBoosterModalVisible(true);
+
+      if (boostablePolls.length > 0) {
+        return;
+      }
+
+      setIsLoadingBoostablePolls(true);
+
+      try {
+        const nextPolls = await getBoostablePolls();
+        setBoostablePolls(nextPolls);
+      } catch {
+        setBoostablePolls([]);
+      } finally {
+        setIsLoadingBoostablePolls(false);
       }
     }
   };
@@ -255,6 +329,17 @@ export const RewardShopSection = ({
         visible={isBadgeModalVisible}
         onClose={closeBadgeModal}
         onPurchase={handlePurchaseBadge}
+      />
+      <VoteBoosterModal
+        isLoading={isLoadingBoostablePolls}
+        isPurchasing={isPurchasingBooster}
+        polls={boostablePolls}
+        price={voteBoosterItem?.price ?? 0}
+        selectedPollId={selectedBoosterPollId}
+        visible={isBoosterModalVisible}
+        onClose={closeBoosterModal}
+        onPurchase={handlePurchaseBooster}
+        onSelectPoll={setSelectedBoosterPollId}
       />
     </>
   );
