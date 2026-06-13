@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PollDeadlineId } from '../utils/poll-deadline';
 
@@ -22,6 +23,8 @@ export const PollDeadlineSelector = ({
   selectedDeadlineId,
   onSelectDeadline,
 }: PollDeadlineSelectorProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
     <View style={styles.field}>
       <AppText variant="body" weight="semibold">
@@ -40,13 +43,17 @@ export const PollDeadlineSelector = ({
               onPress={() => onSelectDeadline(option.id)}
               style={[
                 styles.deadlineOption,
-                isSelected && styles.deadlineOptionSelected,
+                isSelected && {
+                  backgroundColor: appTheme.colors.primary,
+                  borderColor: appTheme.colors.primaryStrong,
+                },
               ]}
             >
               <AppText
-                tone={isSelected ? 'primary' : 'muted'}
+                style={isSelected && { color: appTheme.colors.inverseText }}
+                tone="muted"
                 variant="bodySmall"
-                weight="semibold"
+                weight={isSelected ? 'bold' : 'semibold'}
               >
                 {option.label}
               </AppText>
@@ -76,9 +83,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 40,
     paddingHorizontal: theme.spacing.lg,
-  },
-  deadlineOptionSelected: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryStrong,
   },
 });

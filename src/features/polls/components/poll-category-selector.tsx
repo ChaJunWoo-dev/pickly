@@ -1,5 +1,6 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -17,6 +18,7 @@ export const PollCategorySelector = ({
   selectedCategoryId,
   onSelectCategory,
 }: PollCategorySelectorProps) => {
+  const { appTheme } = useThemeMode();
   const [isExpanded, setIsExpanded] = useState(false);
   const visibleCategories = isExpanded
     ? Object.values(pollCategories)
@@ -40,12 +42,20 @@ export const PollCategorySelector = ({
               style={[
                 styles.categoryItem,
                 isSelected && styles.selectedCategoryItem,
+                isSelected && {
+                  backgroundColor: appTheme.colors.primary,
+                  borderColor: appTheme.colors.primaryStrong,
+                },
               ]}
             >
               <View
                 style={[
                   styles.categoryIcon,
-                  { backgroundColor: category.backgroundColor },
+                  {
+                    backgroundColor: isSelected
+                      ? appTheme.colors.surface
+                      : category.backgroundColor,
+                  },
                 ]}
               >
                 <Ionicons
@@ -57,6 +67,7 @@ export const PollCategorySelector = ({
 
               <AppText
                 align="center"
+                style={isSelected && { color: appTheme.colors.inverseText }}
                 variant="bodySmall"
                 weight={isSelected ? 'bold' : 'semibold'}
               >
@@ -105,8 +116,6 @@ const styles = StyleSheet.create({
     width: 70,
   },
   selectedCategoryItem: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryStrong,
     borderWidth: 1.5,
   },
   categoryIcon: {

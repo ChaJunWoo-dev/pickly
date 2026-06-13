@@ -158,14 +158,16 @@ export const HomeFeedScreen = () => {
           </Card>
         ) : null}
 
-        {polls.map((poll) => (
-          <PollCard
-            key={poll.id}
-            onOpen={handleOpenPoll}
-            onVote={handleVote}
-            poll={poll}
-          />
-        ))}
+        {!isLoadingPolls
+          ? polls.map((poll) => (
+              <PollCard
+                key={poll.id}
+                onOpen={handleOpenPoll}
+                onVote={handleVote}
+                poll={poll}
+              />
+            ))
+          : null}
       </View>
     </Screen>
   );
