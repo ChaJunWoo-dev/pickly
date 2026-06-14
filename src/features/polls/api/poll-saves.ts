@@ -2,9 +2,9 @@ import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import type { PollCardData } from '../components/poll-card';
 import {
-  mapPollFeedRowToCardData,
-  type PollFeedRow,
-} from '../utils/poll-mappers';
+  mapSavedPollRowsToCardData,
+  type SavedPollRow,
+} from '../utils/poll-saves';
 
 export const getIsPollSaved = async (pollId: string) => {
   const user = await ensureGuestSession();
@@ -72,16 +72,6 @@ export const togglePollSave = async (pollId: string, isSaved: boolean) => {
   return true;
 };
 
-type SavedPollRow = {
-  id: string;
-  created_at: string;
-  polls: PollFeedRow | PollFeedRow[] | null;
-};
-
-const getPollRow = (polls: SavedPollRow['polls']) => {
-  return Array.isArray(polls) ? polls[0] : polls;
-};
-
 export const getSavedPolls = async (): Promise<PollCardData[]> => {
   const user = await ensureGuestSession();
 
@@ -124,15 +114,5 @@ export const getSavedPolls = async (): Promise<PollCardData[]> => {
     throw error;
   }
 
-  return ((data ?? []) as SavedPollRow[])
-    .map((save) => {
-      const poll = getPollRow(save.polls);
-
-      if (!poll) {
-        return null;
-      }
-
-      return mapPollFeedRowToCardData(poll, user.id);
-    })
-    .filter((poll): poll is PollCardData => Boolean(poll));
+  return mapSavedPollRowsToCardData((data ?? []) as SavedPollRow[], user.id);
 };

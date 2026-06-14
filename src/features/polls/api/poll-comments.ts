@@ -1,61 +1,15 @@
 import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import type { Ionicons } from '@expo/vector-icons';
-
-type BadgeIcon = keyof typeof Ionicons.glyphMap;
-
-type PollCommentAuthor = {
-  avatarUrl: string | null;
-  badgeIcon: BadgeIcon | null;
-  nickname: string;
-};
-
-export type PollComment = {
-  author: PollCommentAuthor;
-  id: string;
-  pollId: string;
-  userId: string;
-  body: string;
-  createdAt: string;
-};
-
-export type PollCommentRow = {
-  id: string;
-  poll_id: string;
-  user_id: string;
-  body: string;
-  created_at: string;
-};
-
-type ProfileRow = {
-  avatar_url: string | null;
-  badge_id: string | null;
-  id: string;
-  nickname: string | null;
-};
-
-type RewardBadgeRow = {
-  icon: BadgeIcon;
-  id: string;
-};
-
-const emptyAuthor: PollCommentAuthor = {
-  avatarUrl: null,
-  badgeIcon: null,
-  nickname: '익명',
-};
-
-const mapPollComment = (
-  comment: PollCommentRow,
-  author = emptyAuthor
-): PollComment => ({
-  author,
-  id: comment.id,
-  pollId: comment.poll_id,
-  userId: comment.user_id,
-  body: comment.body,
-  createdAt: comment.created_at,
-});
+import {
+  mapPollCommentRow,
+  type BadgeIcon,
+  type CommentAuthorProfileRow,
+  type CommentNotificationSettingRow,
+  type CommentRewardBadgeRow,
+  type PollCommentAuthor,
+  type PollCommentRow,
+  type PollOwnerRow,
+} from '../utils/poll-comments';
 
 const getCommentAuthors = async (userIds: string[]) => {
   const uniqueUserIds = [...new Set(userIds)];
@@ -73,7 +27,7 @@ const getCommentAuthors = async (userIds: string[]) => {
     throw profileError;
   }
 
-  const profileRows = (profiles ?? []) as ProfileRow[];
+  const profileRows = (profiles ?? []) as CommentAuthorProfileRow[];
   const badgeIds = [
     ...new Set(
       profileRows
@@ -93,7 +47,7 @@ const getCommentAuthors = async (userIds: string[]) => {
       throw badgeError;
     }
 
-    ((badges ?? []) as RewardBadgeRow[]).forEach((badge) => {
+    ((badges ?? []) as CommentRewardBadgeRow[]).forEach((badge) => {
       badgeIconById.set(badge.id, badge.icon);
     });
   }
@@ -118,7 +72,7 @@ const mapPollComments = async (comments: PollCommentRow[]) => {
   );
 
   return comments.map((comment) =>
-    mapPollComment(comment, authorByUserId.get(comment.user_id))
+    mapPollCommentRow(comment, authorByUserId.get(comment.user_id))
   );
 };
 
@@ -151,6 +105,31 @@ export const getPollComments = async (
   return mapPollComments((data ?? []) as PollCommentRow[]);
 };
 
+export const getPollOwnerId = async (pollId: string) => {
+  const { data, error } = await supabase
+    .from('polls')
+    .select('user_id')
+    .eq('id', pollId)
+    .single();
+
+  if (error) throw error;
+
+  return (data as PollOwnerRow).user_id;
+};
+
+export const getUserCommentNotificationEnabled = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('notification_settings')
+    .select('comment_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return ((data as CommentNotificationSettingRow | null)?.comment_enabled ??
+    true);
+};
+
 export const createPollComment = async (pollId: string, body: string) => {
   const trimmedBody = body.trim();
 
@@ -174,4 +153,28 @@ export const createPollComment = async (pollId: string, body: string) => {
   const [comment] = await mapPollComments([data as PollCommentRow]);
 
   return comment;
+};
+
+type SendPollCommentNotificationParams = {
+  recipientUserId: string;
+  pollId: string;
+};
+
+export const sendCommentPushNotification = async ({
+  recipientUserId,
+  pollId,
+}: SendPollCommentNotificationParams) => {
+  const { error } = await supabase.functions.invoke('send-push-notification', {
+    body: {
+      recipientUserId,
+      title: '새 댓글이 달렸어요',
+      body: '내 투표에 새로운 댓글이 도착했어요',
+      data: {
+        type: 'poll_comment',
+        pollId,
+      },
+    },
+  });
+
+  if (error) throw error;
 };

@@ -7,10 +7,10 @@ import {
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
-import { getPollCommentPreview, PollComment } from '../api/poll-comments';
+import { getPollCommentPreview } from '../api/poll-comments';
 import { getIsPollSaved, togglePollSave } from '../api/poll-saves';
 import { submitPollVote } from '../api/submit-poll-vote';
 import type { PollCardData } from '../components/poll-card';
@@ -21,6 +21,7 @@ import { PollDetailOptionList } from '../components/poll-detail-option-list';
 import { PollDetailTopBar } from '../components/poll-detail-top-bar';
 import { PollResultCard } from '../components/poll-result-card';
 import { PollTimer } from '../components/poll-timer';
+import type { PollComment } from '../utils/poll-comments';
 import { isPollExpired } from '../utils/poll-deadline';
 
 export const PollDetailScreen = () => {
@@ -35,7 +36,7 @@ export const PollDetailScreen = () => {
   const [isSavingPoll, setIsSavingPoll] = useState(false);
   const [commentPreview, setCommentPreview] = useState<PollComment[]>([]);
 
-  const loadPoll = async () => {
+  const loadPoll = useCallback(async () => {
     if (!id) return;
 
     setIsLoadingPoll(true);
@@ -59,7 +60,7 @@ export const PollDetailScreen = () => {
       setIsLoadingPoll(false);
       setIsSavingPoll(false);
     }
-  };
+  }, [id]);
 
   const handleToggleSave = async () => {
     if (isSavingPoll || !poll) return;
@@ -131,7 +132,7 @@ export const PollDetailScreen = () => {
     if (!id) return;
 
     void loadPoll();
-  }, [id]);
+  }, [id, loadPoll]);
 
   if (isLoadingPoll) {
     return (

@@ -4,7 +4,7 @@ import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import type { ImageSourcePropType } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { CurrentProfile } from '../api/get-current-profile';
+import type { CurrentProfile } from '../utils/current-profile';
 
 type ProfileGuestCardProps = {
   profile: CurrentProfile | null;

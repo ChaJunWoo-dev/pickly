@@ -1,5 +1,4 @@
 import { AppText } from '@/components';
-import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';

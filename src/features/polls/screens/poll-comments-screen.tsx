@@ -16,9 +16,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import {
   createPollComment,
   getPollComments,
-  PollComment,
+  getPollOwnerId,
+  getUserCommentNotificationEnabled,
+  sendCommentPushNotification,
 } from '../api/poll-comments';
 import { formatCommentCreatedAt } from '../utils/comment-time';
+import type { PollComment } from '../utils/poll-comments';
 
 const COMMENT_MAX_LENGTH = 200;
 
@@ -28,6 +31,8 @@ export const PollCommentsScreen = () => {
   const { appTheme } = useThemeMode();
   const [commentBody, setCommentBody] = useState('');
   const [comments, setComments] = useState<PollComment[]>([]);
+  const [pollOwnerId, setPollOwnerId] = useState<string | null>(null);
+  const [pollOwnerCommentEnabled, setPollOwnerCommentEnabled] = useState(true);
 
   const isEmpty = comments.length === 0;
   const trimmedComment = commentBody.trim();
@@ -42,6 +47,17 @@ export const PollCommentsScreen = () => {
 
     setComments((prev) => [nextComment, ...prev]);
     setCommentBody('');
+
+    if (
+      pollOwnerId &&
+      pollOwnerId !== nextComment.userId &&
+      pollOwnerCommentEnabled
+    ) {
+      void sendCommentPushNotification({
+        recipientUserId: pollOwnerId,
+        pollId: id,
+      });
+    }
   };
 
   useEffect(() => {
@@ -49,10 +65,20 @@ export const PollCommentsScreen = () => {
       if (!id) return;
 
       try {
-        const nextComments = await getPollComments(id);
+        const [nextComments, nextPollOwnerId] = await Promise.all([
+          getPollComments(id),
+          getPollOwnerId(id),
+        ]);
+        const nextPollOwnerCommentEnabled =
+          await getUserCommentNotificationEnabled(nextPollOwnerId);
+
         setComments(nextComments);
+        setPollOwnerId(nextPollOwnerId);
+        setPollOwnerCommentEnabled(nextPollOwnerCommentEnabled);
       } catch {
         setComments([]);
+        setPollOwnerId(null);
+        setPollOwnerCommentEnabled(true);
       }
     };
 
