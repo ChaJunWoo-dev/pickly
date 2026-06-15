@@ -1,4 +1,4 @@
-import { AppText, Card, EmptyState, LoadingState, Screen } from '@/components';
+import { Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { getCurrentPointSummary } from '@/features/rewards/api/point-summary';
@@ -14,6 +14,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { getFeedPolls } from '../api/get-feed-polls';
 import { submitPollVote } from '../api/submit-poll-vote';
 import { FeedTabs } from '../components/feed-tabs';
+import { HomeFeedHeader } from '../components/home-feed-header';
 import { PollCard, type PollCardData } from '../components/poll-card';
 import type { FeedTab } from '../types/feed';
 import { isPollExpired } from '../utils/poll-deadline';
@@ -105,45 +106,7 @@ export const HomeFeedScreen = () => {
       contentContainerStyle={styles.content}
       scrollViewProps={{ bounces: false }}
     >
-      <View style={styles.header}>
-        <View>
-          <AppText style={styles.brandTitle} weight="bold">
-            Pickly
-          </AppText>
-        </View>
-
-        <View
-          style={[
-            styles.headerPointsPill,
-            {
-              backgroundColor: appTheme.colors.surface,
-              borderColor: appTheme.colors.border,
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.headerPointIcon,
-              { backgroundColor: appTheme.colors.primary },
-            ]}
-          >
-            <AppText
-              style={[
-                styles.headerPointIconText,
-                { color: appTheme.colors.text },
-              ]}
-            >
-              P
-            </AppText>
-          </View>
-          <AppText
-            style={[styles.headerPointsText, { color: appTheme.colors.text }]}
-            weight="bold"
-          >
-            {currentPoints.toLocaleString()}P
-          </AppText>
-        </View>
-      </View>
+      <HomeFeedHeader currentPoints={currentPoints} />
 
       <FeedTabs value={activeFeedTab} onChange={setActiveFeedTab} />
 
@@ -189,44 +152,6 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.xl,
     paddingBottom: theme.spacing.xxxl,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  brandTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    lineHeight: 36,
-  },
-  headerPointsPill: {
-    alignItems: 'center',
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    minHeight: 36,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-  },
-  headerPointIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  headerPointIconText: {
-    fontSize: 15,
-    fontWeight: '800',
-    includeFontPadding: false,
-    lineHeight: 17,
-    textAlign: 'center',
-  },
-  headerPointsText: {
-    fontSize: 15,
-    lineHeight: 20,
   },
   feed: {
     gap: theme.spacing.lg,

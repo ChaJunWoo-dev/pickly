@@ -1,12 +1,4 @@
-import {
-  AppButton,
-  AppInput,
-  AppText,
-  Avatar,
-  Card,
-  EmptyInfoRow,
-  Screen,
-} from '@/components';
+import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +12,8 @@ import {
   getUserCommentNotificationEnabled,
   sendCommentPushNotification,
 } from '../api/poll-comments';
-import { formatCommentCreatedAt } from '../utils/comment-time';
+import { PollCommentComposer } from '../components/poll-comment-composer';
+import { PollCommentList } from '../components/poll-comment-list';
 import type { PollComment } from '../utils/poll-comments';
 
 const COMMENT_MAX_LENGTH = 200;
@@ -34,7 +27,6 @@ export const PollCommentsScreen = () => {
   const [pollOwnerId, setPollOwnerId] = useState<string | null>(null);
   const [pollOwnerCommentEnabled, setPollOwnerCommentEnabled] = useState(true);
 
-  const isEmpty = comments.length === 0;
   const trimmedComment = commentBody.trim();
   const canSubmit = trimmedComment.length > 0;
 
@@ -120,100 +112,15 @@ export const PollCommentsScreen = () => {
         </AppText>
       </View>
 
-      <Card style={styles.composerCard}>
-        <View style={styles.composerHeader}>
-          <AppText variant="bodySmall" weight="bold">
-            댓글 작성
-          </AppText>
+      <PollCommentComposer
+        canSubmit={canSubmit}
+        commentBody={commentBody}
+        maxLength={COMMENT_MAX_LENGTH}
+        onChangeCommentBody={setCommentBody}
+        onSubmit={handleCreateComment}
+      />
 
-          <AppText
-            tone={commentBody.length >= COMMENT_MAX_LENGTH ? 'danger' : 'muted'}
-            variant="caption"
-            weight="semibold"
-          >
-            {commentBody.length}/{COMMENT_MAX_LENGTH}
-          </AppText>
-        </View>
-
-        <AppInput
-          maxLength={COMMENT_MAX_LENGTH}
-          multiline
-          onChangeText={setCommentBody}
-          placeholder="예) 저는 첫 번째 선택지가 더 끌려요"
-          style={styles.commentInput}
-          value={commentBody}
-        />
-
-        <View style={styles.composerFooter}>
-          <AppText tone="subtle" variant="caption">
-            댓글은 작성 후 다른 참여자에게 공개돼요
-          </AppText>
-
-          <AppButton
-            disabled={!canSubmit}
-            size="sm"
-            onPress={handleCreateComment}
-          >
-            등록
-          </AppButton>
-        </View>
-      </Card>
-
-      <Card style={styles.commentListCard}>
-        {isEmpty ? (
-          <EmptyInfoRow
-            description="첫 댓글을 남겨보세요"
-            icon={
-              <Ionicons
-                color={appTheme.colors.textSubtle}
-                name="chatbubble-ellipses-outline"
-                size={18}
-              />
-            }
-            iconBackgroundColor={appTheme.colors.surfaceMuted}
-            title="아직 한마디가 없어요"
-          />
-        ) : (
-          <View style={styles.commentList}>
-            {comments.map((item, index) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.commentRow,
-                  index > 0 && { borderTopColor: appTheme.colors.border },
-                  index > 0 && styles.commentRowBorder,
-                ]}
-              >
-                <Avatar
-                  badgeIcon={item.author.badgeIcon ?? undefined}
-                  name={item.author.nickname}
-                  size="sm"
-                  source={
-                    item.author.avatarUrl
-                      ? { uri: item.author.avatarUrl }
-                      : undefined
-                  }
-                />
-
-                <View style={styles.commentBody}>
-                  <View style={styles.commentMeta}>
-                    <AppText variant="caption" weight="bold">
-                      {item.author.nickname}
-                    </AppText>
-                    <AppText tone="subtle" variant="caption">
-                      {formatCommentCreatedAt(item.createdAt)}
-                    </AppText>
-                  </View>
-
-                  <AppText tone="muted" variant="bodySmall">
-                    {item.body}
-                  </AppText>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </Card>
+      <PollCommentList comments={comments} />
     </Screen>
   );
 };
@@ -243,47 +150,5 @@ const styles = StyleSheet.create({
   },
   summary: {
     gap: theme.spacing.xs,
-  },
-  commentListCard: {
-    gap: theme.spacing.md,
-  },
-  commentList: {
-    gap: 0,
-  },
-  commentRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.md,
-  },
-  commentRowBorder: {
-    borderTopWidth: 1,
-  },
-  commentBody: {
-    flex: 1,
-    gap: theme.spacing.xs,
-  },
-  commentMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  composerCard: {
-    gap: theme.spacing.md,
-  },
-  composerHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  commentInput: {
-    minHeight: 104,
-    textAlignVertical: 'top',
-  },
-  composerFooter: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    justifyContent: 'space-between',
   },
 });

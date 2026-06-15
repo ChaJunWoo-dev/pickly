@@ -1,16 +1,13 @@
 import {
   AppButton,
   AppModal,
-  AppText,
-  EmptyInfoRow,
-  LoadingState,
 } from '@/components';
 import { theme } from '@/constants/theme';
-import { useThemeMode } from '@/contexts/theme-mode';
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { RewardBadge } from '../utils/reward-badge';
+import { RewardBadgeGrid } from './reward-badge-grid';
+import { RewardBadgeRevealResult } from './reward-badge-reveal-result';
 
 const BADGE_REVEAL_DURATION = 2000;
 const BADGE_ROLLING_MIN_DELAY = 45;
@@ -37,7 +34,6 @@ export const RewardBadgeModal = ({
   onClose,
   onPurchase,
 }: RewardBadgeModalProps) => {
-  const { appTheme } = useThemeMode();
   const [rollingBadgeIndex, setRollingBadgeIndex] = useState(0);
   const rollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasBadges = badges.length > 0;
@@ -84,106 +80,11 @@ export const RewardBadgeModal = ({
     <AppModal visible={visible} onClose={onClose}>
       <View style={styles.body}>
         {isPurchasing ? (
-          <View style={styles.revealResult}>
-            <View
-              style={[
-                styles.revealIcon,
-                { backgroundColor: appTheme.colors.secondarySoft },
-              ]}
-            >
-              <Ionicons
-                color={appTheme.colors.secondary}
-                name={rollingBadge?.icon ?? 'sparkles'}
-                size={46}
-              />
-            </View>
-            <View style={styles.revealCopy}>
-              <AppText align="center" variant="bodySmall" weight="bold">
-                배지를 고르는 중이에요
-              </AppText>
-              <AppText align="center" tone="muted" variant="caption">
-                {rollingBadge?.label ?? '어떤 배지가 나올까요?'}
-              </AppText>
-            </View>
-          </View>
+          <RewardBadgeRevealResult badge={rollingBadge} isRolling />
         ) : isRevealed && revealedBadge ? (
-          <View style={styles.revealResult}>
-            <AppText align="center" variant="bodySmall" weight="bold">
-              새 배지를 획득했어요
-            </AppText>
-            <View
-              style={[
-                styles.revealedBadgeIcon,
-                { backgroundColor: appTheme.colors.secondarySoft },
-              ]}
-            >
-              <Ionicons
-                color={appTheme.colors.secondary}
-                name={revealedBadge.icon}
-                size={50}
-              />
-            </View>
-            <AppText align="center" variant="subtitle" weight="bold">
-              {revealedBadge.label}
-            </AppText>
-          </View>
+          <RewardBadgeRevealResult badge={revealedBadge} isRolling={false} />
         ) : (
-          <View style={styles.badgeSection}>
-            <AppText variant="bodySmall" weight="bold">
-              획득 가능한 배지
-            </AppText>
-
-            {isLoading ? (
-              <LoadingState
-                style={styles.feedback}
-                title="배지 목록을 불러오는 중이에요"
-              />
-            ) : hasBadges ? (
-              <View style={styles.badgeGrid}>
-                {badges.map((badge) => (
-                  <View
-                    key={badge.id}
-                    style={[
-                      styles.badgeItem,
-                      {
-                        backgroundColor: appTheme.colors.surfaceMuted,
-                        borderColor: appTheme.colors.border,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.badgeIcon,
-                        { backgroundColor: appTheme.colors.secondarySoft },
-                      ]}
-                    >
-                      <Ionicons
-                        color={appTheme.colors.secondary}
-                        name={badge.icon}
-                        size={24}
-                      />
-                    </View>
-                    <AppText align="center" variant="bodySmall" weight="bold">
-                      {badge.label}
-                    </AppText>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <EmptyInfoRow
-                description="잠시 후 다시 시도해주세요"
-                icon={
-                  <Ionicons
-                    color={appTheme.colors.textSubtle}
-                    name="ribbon-outline"
-                    size={18}
-                  />
-                }
-                iconBackgroundColor={appTheme.colors.surfaceMuted}
-                title="등록된 배지가 없어요"
-              />
-            )}
-          </View>
+          <RewardBadgeGrid badges={badges} isLoading={isLoading} />
         )}
       </View>
 
@@ -213,58 +114,6 @@ export const RewardBadgeModal = ({
 const styles = StyleSheet.create({
   body: {
     gap: theme.spacing.md,
-  },
-  badgeSection: {
-    gap: theme.spacing.md,
-  },
-  badgeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.md,
-  },
-  badgeItem: {
-    alignItems: 'center',
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    minHeight: 98,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.spacing.md,
-    width: '30.5%',
-  },
-  badgeIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  feedback: {
-    paddingVertical: theme.spacing.lg,
-  },
-  revealResult: {
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    minHeight: 180,
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.lg,
-  },
-  revealIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 88,
-    justifyContent: 'center',
-    width: 88,
-  },
-  revealCopy: {
-    gap: theme.spacing.xxs,
-  },
-  revealedBadgeIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 96,
-    justifyContent: 'center',
-    width: 96,
   },
   actions: {
     flexDirection: 'row',

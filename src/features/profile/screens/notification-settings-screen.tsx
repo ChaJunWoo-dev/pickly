@@ -1,9 +1,7 @@
-import { AppButton, AppText, Card, LoadingState, Screen } from '@/components';
+import { Card, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { useThemeMode } from '@/contexts/theme-mode';
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Linking, StyleSheet } from 'react-native';
 import {
   getNotificationPermission,
   requestNotificationPermission,
@@ -13,6 +11,8 @@ import {
   updateNotificationSettings,
 } from '../api/notification-settings';
 import { registerPushToken } from '../api/push-tokens';
+import { NotificationOptionRow } from '../components/notification-option-row';
+import { NotificationPermissionCard } from '../components/notification-permission-card';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
 import type {
   NotificationPermission,
@@ -81,7 +81,6 @@ const getNotificationSettingUpdate = (
 };
 
 export const NotificationSettingsScreen = () => {
-  const { appTheme } = useThemeMode();
   const [enabledOptions, setEnabledOptions] = useState<NotificationState>(
     initialNotificationState
   );
@@ -91,14 +90,6 @@ export const NotificationSettingsScreen = () => {
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const isPermissionGranted = permission.status === 'granted';
   const isPermissionDenied = permission.status === 'denied';
-  const permissionTitle = isPermissionGranted
-    ? '알림 권한이 켜져 있어요'
-    : '알림 권한이 필요해요';
-  const permissionDescription = isPermissionGranted
-    ? '선택한 투표 알림을 받을 수 있어요'
-    : isPermissionDenied
-      ? '기기 설정에서 Pickly 알림을 허용해주세요'
-      : '투표 마감과 결과 알림을 받으려면 권한을 허용해주세요';
 
   const savePushToken = async () => {
     try {
@@ -183,52 +174,13 @@ export const NotificationSettingsScreen = () => {
     >
       <ProfileSubpageHeader title="투표 알림" />
 
-      <Card style={styles.permissionCard}>
-        <View
-          style={[
-            styles.permissionIcon,
-            {
-              backgroundColor: isPermissionGranted
-                ? appTheme.colors.primarySoft
-                : appTheme.colors.surfaceMuted,
-            },
-          ]}
-        >
-          <Ionicons
-            color={
-              isPermissionGranted
-                ? appTheme.colors.primaryStrong
-                : appTheme.colors.textMuted
-            }
-            name={
-              isPermissionGranted ? 'notifications' : 'notifications-outline'
-            }
-            size={22}
-          />
-        </View>
-
-        <View style={styles.permissionCopy}>
-          <AppText variant="bodySmall" weight="bold">
-            {permissionTitle}
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            {permissionDescription}
-          </AppText>
-        </View>
-
-        {!isPermissionGranted ? (
-          <AppButton
-            loading={isRequestingPermission}
-            size="sm"
-            variant="outline"
-            onPress={handlePressPermission}
-          >
-            {isPermissionDenied && !permission.canAskAgain
-              ? '설정 열기'
-              : '허용하기'}
-          </AppButton>
-        ) : null}
-      </Card>
+      <NotificationPermissionCard
+        canAskAgain={permission.canAskAgain}
+        isDenied={isPermissionDenied}
+        isGranted={isPermissionGranted}
+        isRequesting={isRequestingPermission}
+        onPressPermission={handlePressPermission}
+      />
 
       <Card style={styles.card}>
         {isLoadingSettings ? (
@@ -241,69 +193,18 @@ export const NotificationSettingsScreen = () => {
             const isEnabled = enabledOptions[option.id];
 
             return (
-              <Pressable
+              <NotificationOptionRow
                 key={option.id}
-                accessibilityRole="switch"
-                accessibilityState={{
-                  checked: isEnabled,
-                  disabled: !isPermissionGranted,
-                }}
-                disabled={!isPermissionGranted}
+                description={option.description}
+                icon={option.icon}
+                isDisabled={!isPermissionGranted}
+                isEnabled={isEnabled}
+                showBorder={index > 0}
+                title={option.title}
                 onPress={() => {
                   void toggleOption(option.id);
                 }}
-                style={[
-                  styles.row,
-                  !isPermissionGranted && styles.rowDisabled,
-                  index > 0 && {
-                    borderTopColor: appTheme.colors.border,
-                    borderTopWidth: 1,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.icon,
-                    { backgroundColor: appTheme.colors.surfaceMuted },
-                  ]}
-                >
-                  <Ionicons
-                    color={appTheme.colors.textMuted}
-                    name={option.icon}
-                    size={19}
-                  />
-                </View>
-
-                <View style={styles.copy}>
-                  <AppText variant="bodySmall" weight="bold">
-                    {option.title}
-                  </AppText>
-                  <AppText tone="muted" variant="caption">
-                    {option.description}
-                  </AppText>
-                </View>
-
-                <View
-                  style={[
-                    styles.toggle,
-                    {
-                      backgroundColor: isEnabled
-                        ? appTheme.colors.primaryStrong
-                        : appTheme.colors.border,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.toggleThumb,
-                      {
-                        backgroundColor: appTheme.colors.surface,
-                        transform: [{ translateX: isEnabled ? 18 : 0 }],
-                      },
-                    ]}
-                  />
-                </View>
-              </Pressable>
+              />
             );
           })
         )}
@@ -320,56 +221,7 @@ const styles = StyleSheet.create({
   card: {
     paddingVertical: theme.spacing.xs,
   },
-  permissionCard: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-  },
-  permissionIcon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  permissionCopy: {
-    flex: 1,
-    gap: theme.spacing.xxs,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 72,
-    paddingVertical: theme.spacing.sm,
-  },
-  rowDisabled: {
-    opacity: 0.45,
-  },
-  icon: {
-    alignItems: 'center',
-    borderRadius: theme.radius.full,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  copy: {
-    flex: 1,
-    gap: theme.spacing.xxs,
-  },
   loading: {
     paddingVertical: theme.spacing.xl,
-  },
-  toggle: {
-    borderRadius: theme.radius.full,
-    height: 28,
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-    width: 52,
-  },
-  toggleThumb: {
-    borderRadius: theme.radius.full,
-    height: 22,
-    width: 22,
   },
 });
