@@ -5,9 +5,8 @@ import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { getBoostablePolls } from '../api/boostable-polls';
 import {
   NICKNAME_CHANGE_PRICE,
@@ -22,6 +21,7 @@ import type { BoostablePoll } from '../utils/boostable-polls';
 import type { RewardItem } from '../utils/reward-items';
 import { NicknameModal } from './nickname-modal';
 import { RewardBadgeModal } from './reward-badge-modal';
+import { RewardShopItem } from './reward-shop-item';
 import { VoteBoosterModal } from './vote-booster-modal';
 
 const BADGE_REVEAL_DURATION = 2000;
@@ -255,50 +255,12 @@ export const RewardShopSection = ({
             const isUnavailable = currentPoints < item.price;
 
             return (
-              <Pressable
+              <RewardShopItem
                 key={item.id}
-                accessibilityRole="button"
-                onPress={() => handlePressReward(item)}
-                style={({ pressed }) => [
-                  styles.item,
-                  {
-                    backgroundColor: isUnavailable
-                      ? appTheme.colors.surfaceMuted
-                      : appTheme.colors.surface,
-                    borderColor: appTheme.colors.border,
-                  },
-                  isUnavailable && styles.itemUnavailable,
-                  pressed && styles.itemPressed,
-                ]}
-              >
-                <Ionicons
-                  color={
-                    isUnavailable
-                      ? appTheme.colors.textSubtle
-                      : item.type === 'random_badge'
-                        ? appTheme.colors.secondary
-                        : appTheme.colors.reward
-                  }
-                  name={item.icon as keyof typeof Ionicons.glyphMap}
-                  size={42}
-                />
-                <AppText
-                  align="center"
-                  tone={isUnavailable ? 'subtle' : 'primary'}
-                  variant="caption"
-                  weight="bold"
-                >
-                  {item.title}
-                </AppText>
-                <AppText
-                  align="center"
-                  tone={isUnavailable ? 'subtle' : 'primary'}
-                  variant="bodySmall"
-                  weight="bold"
-                >
-                  {item.price.toLocaleString()}P
-                </AppText>
-              </Pressable>
+                isUnavailable={isUnavailable}
+                item={item}
+                onPress={handlePressReward}
+              />
             );
           })}
         </View>
@@ -358,22 +320,6 @@ const styles = StyleSheet.create({
   items: {
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  item: {
-    alignItems: 'center',
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flex: 1,
-    gap: theme.spacing.sm,
-    minHeight: 132,
-    justifyContent: 'center',
-    padding: theme.spacing.sm,
-  },
-  itemUnavailable: {
-    opacity: 0.58,
-  },
-  itemPressed: {
-    opacity: 0.7,
   },
   toast: {
     alignSelf: 'center',
