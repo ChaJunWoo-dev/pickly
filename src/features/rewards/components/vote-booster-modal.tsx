@@ -8,8 +8,9 @@ import {
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { BoostablePoll } from '../utils/boostable-polls';
+import { VoteBoosterPollItem } from './vote-booster-poll-item';
 
 type VoteBoosterModalProps = {
   isLoading?: boolean;
@@ -21,12 +22,6 @@ type VoteBoosterModalProps = {
   onClose: () => void;
   onPurchase: () => void;
   onSelectPoll: (pollId: string) => void;
-};
-
-const formatCreatedDate = (createdAt: string) => {
-  const date = new Date(createdAt);
-
-  return `${date.getMonth() + 1}.${date.getDate()}`;
 };
 
 export const VoteBoosterModal = ({
@@ -64,75 +59,14 @@ export const VoteBoosterModal = ({
           <View style={styles.pollList}>
             {polls.map((poll) => {
               const isSelected = selectedPollId === poll.id;
-              const isBoosted = poll.boostedUntil
-                ? new Date(poll.boostedUntil).getTime() > Date.now()
-                : false;
 
               return (
-                <Pressable
+                <VoteBoosterPollItem
                   key={poll.id}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    disabled: isBoosted,
-                    selected: isSelected,
-                  }}
-                  disabled={isBoosted}
-                  onPress={() => onSelectPoll(poll.id)}
-                  style={({ pressed }) => [
-                    styles.pollItem,
-                    {
-                      backgroundColor: isSelected
-                        ? appTheme.colors.primarySoft
-                        : appTheme.colors.surface,
-                      borderColor: isSelected
-                        ? appTheme.colors.primaryStrong
-                        : appTheme.colors.border,
-                    },
-                    isBoosted && styles.pollItemDisabled,
-                    pressed && styles.pollItemPressed,
-                  ]}
-                >
-                  <View style={styles.pollCopy}>
-                    <AppText
-                      variant="bodySmall"
-                      weight={isSelected ? 'bold' : 'semibold'}
-                    >
-                      {poll.title}
-                    </AppText>
-                    <View style={styles.pollMetaRow}>
-                      <AppText tone="muted" variant="caption">
-                        {formatCreatedDate(poll.createdAt)} 생성
-                      </AppText>
-                      <View
-                        style={[
-                          styles.statusDot,
-                          {
-                            backgroundColor: isBoosted
-                              ? appTheme.colors.primaryStrong
-                              : appTheme.colors.textSubtle,
-                          },
-                        ]}
-                      />
-                      <AppText
-                        tone={isBoosted ? 'success' : 'muted'}
-                        variant="caption"
-                        weight="semibold"
-                      >
-                        {isBoosted ? '이미 적용 중' : '적용 가능'}
-                      </AppText>
-                    </View>
-                  </View>
-
-                  <Ionicons
-                    color={
-                      isSelected
-                        ? appTheme.colors.primaryStrong
-                        : appTheme.colors.textSubtle
-                    }
-                    name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={22}
-                  />
-                </Pressable>
+                  isSelected={isSelected}
+                  poll={poll}
+                  onSelect={onSelectPoll}
+                />
               );
             })}
           </View>
@@ -184,36 +118,6 @@ const styles = StyleSheet.create({
   },
   pollList: {
     gap: theme.spacing.sm,
-  },
-  pollItem: {
-    alignItems: 'center',
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 72,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  pollItemDisabled: {
-    opacity: 0.58,
-  },
-  pollItemPressed: {
-    opacity: 0.72,
-  },
-  pollCopy: {
-    flex: 1,
-    gap: theme.spacing.xs,
-  },
-  pollMetaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  statusDot: {
-    borderRadius: theme.radius.full,
-    height: 4,
-    width: 4,
   },
   feedback: {
     paddingVertical: theme.spacing.lg,
