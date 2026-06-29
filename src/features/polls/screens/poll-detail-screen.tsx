@@ -1,5 +1,7 @@
-import { AppText, Screen } from '@/components';
+import { AppText, Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
+import { Ionicons } from '@expo/vector-icons';
 import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
@@ -24,6 +26,7 @@ import { isPollExpired } from '../utils/poll-deadline';
 export const PollDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
+  const { appTheme } = useThemeMode();
   const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
   const [poll, setPoll] = useState<PollCardData | null>(null);
   const [isLoadingPoll, setIsLoadingPoll] = useState(true);
@@ -132,16 +135,30 @@ export const PollDetailScreen = () => {
 
   if (isLoadingPoll) {
     return (
-      <Screen>
-        <AppText>투표를 불러오는 중이에요</AppText>
+      <Screen contentContainerStyle={styles.feedbackScreen}>
+        <Card style={styles.feedbackCard}>
+          <LoadingState title="투표를 불러오는 중이에요" />
+        </Card>
       </Screen>
     );
   }
 
   if (!poll) {
     return (
-      <Screen>
-        <AppText>투표를 찾을 수 없어요</AppText>
+      <Screen contentContainerStyle={styles.feedbackScreen}>
+        <Card style={styles.feedbackCard}>
+          <EmptyState
+            description="삭제되었거나 접근할 수 없는 투표예요"
+            icon={
+              <Ionicons
+                color={appTheme.colors.textSubtle}
+                name="alert-circle-outline"
+                size={34}
+              />
+            }
+            title="투표를 찾을 수 없어요"
+          />
+        </Card>
       </Screen>
     );
   }
@@ -224,5 +241,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
+  },
+  feedbackScreen: {
+    justifyContent: 'center',
+  },
+  feedbackCard: {
+    paddingVertical: theme.spacing.xl,
   },
 });

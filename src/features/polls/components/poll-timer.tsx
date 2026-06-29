@@ -21,20 +21,28 @@ export const PollTimer = ({ expiresAt }: PollTimerProps) => {
     return () => clearInterval(timerId);
   }, []);
 
+  const isClosed = timeLeftSeconds <= 0;
   const isClosingSoon = timeLeftSeconds <= 60 * 60;
-  const timerColor = isClosingSoon
-    ? theme.colors.danger
-    : theme.colors.textMuted;
+  const timerColor = isClosed
+    ? theme.colors.textMuted
+    : isClosingSoon
+      ? theme.colors.danger
+      : theme.colors.textMuted;
+  const timerLabel = isClosed ? '마감' : `${timeLeft} 남음`;
 
   return (
     <View style={styles.timer}>
-      <Ionicons color={timerColor} name="time-outline" size={14} />
+      <Ionicons
+        color={timerColor}
+        name={isClosed ? 'lock-closed-outline' : 'time-outline'}
+        size={14}
+      />
       <AppText
         style={{ color: timerColor }}
         variant="caption"
         weight="semibold"
       >
-        {timeLeft} 남음
+        {timerLabel}
       </AppText>
     </View>
   );

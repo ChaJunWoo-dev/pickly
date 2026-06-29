@@ -8,4 +8,5 @@ export { Card } from './card';
 export { Divider } from './divider';
 export { EmptyInfoRow } from './empty-info-row';
 export { EmptyState } from './empty-state';
+export { LoadingState } from './loading-state';
 export { Screen } from './screen';

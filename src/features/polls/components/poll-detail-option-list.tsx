@@ -24,7 +24,7 @@ export const PollDetailOptionList = ({
 
   return (
     <View style={styles.voteOptions}>
-      {options.slice(0, 2).map((option) => {
+      {options.map((option) => {
         const isSelected = option.id === selectedOptionId;
 
         return (

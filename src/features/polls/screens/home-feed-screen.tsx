@@ -1,10 +1,11 @@
-import { AppText, Screen } from '@/components';
+import { AppText, Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
+import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -136,15 +137,25 @@ export const HomeFeedScreen = () => {
 
       <View style={styles.feed}>
         {isLoadingPolls ? (
-          <AppText tone="muted" variant="bodySmall">
-            투표를 불러오는 중이에요
-          </AppText>
+          <Card style={styles.feedbackCard}>
+            <LoadingState title="투표를 불러오는 중이에요" />
+          </Card>
         ) : null}
 
         {!isLoadingPolls && polls.length === 0 ? (
-          <AppText tone="muted" variant="bodySmall">
-            아직 만들어진 투표가 없어요
-          </AppText>
+          <Card style={styles.feedbackCard}>
+            <EmptyState
+              description="새 투표가 생기면 여기에 보여드릴게요"
+              icon={
+                <Ionicons
+                  color={appTheme.colors.textSubtle}
+                  name="file-tray-outline"
+                  size={34}
+                />
+              }
+              title="아직 만들어진 투표가 없어요"
+            />
+          </Card>
         ) : null}
 
         {polls.map((poll) => (
@@ -205,5 +216,8 @@ const styles = StyleSheet.create({
   },
   feed: {
     gap: theme.spacing.lg,
+  },
+  feedbackCard: {
+    paddingVertical: theme.spacing.xl,
   },
 });
