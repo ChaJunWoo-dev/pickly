@@ -2,8 +2,8 @@ import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { StyleSheet, View } from 'react-native';
 import {
+  POLL_CREATE_REWARD_POINTS,
   POLL_MAX_REWARD_POINTS,
-  POLL_PARTICIPATION_REWARD_POINTS,
   POLL_POPULAR_BONUS_POINTS,
 } from '../constants/config/poll-rewards';
 
@@ -26,10 +26,10 @@ export const PollRewardPreviewCard = () => {
         <View style={styles.rewardRows}>
           <View style={styles.rewardRow}>
             <AppText tone="muted" variant="bodySmall" weight="semibold">
-              참여 시 보상
+              투표 생성 보상
             </AppText>
             <AppText variant="bodySmall" weight="bold">
-              +{POLL_PARTICIPATION_REWARD_POINTS}P
+              +{POLL_CREATE_REWARD_POINTS}P
             </AppText>
           </View>
 
