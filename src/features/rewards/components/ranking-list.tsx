@@ -1,9 +1,10 @@
-import { AppText, Avatar } from '@/components';
+import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import type { UserRanking } from '../utils/ranking';
+import { RankingRow } from './ranking-row';
 
 type RankingListProps = {
   myRanking: UserRanking | null;
@@ -16,12 +17,6 @@ export const RankingList = ({ myRanking, rankings }: RankingListProps) => {
   const isMyRankingInList = myRanking
     ? visibleRankings.some((ranking) => ranking.userId === myRanking.userId)
     : false;
-
-  const getRankMedal = (ranking: number) => {
-    if (ranking === 1) return 'gold';
-    if (ranking === 2) return 'silver';
-    if (ranking === 3) return 'bronze';
-  };
 
   return (
     <View style={styles.section}>
@@ -73,7 +68,6 @@ export const RankingList = ({ myRanking, rankings }: RankingListProps) => {
             return (
               <RankingRow
                 key={ranking.userId}
-                medal={getRankMedal(ranking.ranking)}
                 ranking={ranking}
                 variant={isMine ? 'mine' : 'default'}
               />
@@ -86,75 +80,6 @@ export const RankingList = ({ myRanking, rankings }: RankingListProps) => {
         ) : null}
       </View>
     </View>
-  );
-};
-
-type RankMedal = 'gold' | 'silver' | 'bronze';
-
-type RankingRowProps = {
-  medal?: RankMedal;
-  ranking: UserRanking;
-  variant?: 'default' | 'mine';
-};
-
-const RankingRow = ({
-  medal,
-  ranking,
-  variant = 'default',
-}: RankingRowProps) => {
-  const isMine = variant === 'mine';
-
-  return (
-    <View style={[styles.row, isMine && styles.myRow]}>
-      <RankMark medal={medal} rank={ranking.ranking} />
-      <Avatar
-        badgeIcon={ranking.badgeIcon ?? undefined}
-        name={ranking.nickname}
-        size="sm"
-        source={ranking.avatarUrl ? { uri: ranking.avatarUrl } : undefined}
-      />
-      <AppText
-        style={styles.name}
-        tone={isMine ? 'success' : 'primary'}
-        variant="bodySmall"
-        weight={isMine ? 'bold' : 'semibold'}
-      >
-        {isMine ? '나의 순위' : ranking.nickname}
-      </AppText>
-      <AppText
-        tone={isMine ? 'success' : 'primary'}
-        variant="bodySmall"
-        weight="bold"
-      >
-        {ranking.points.toLocaleString()}P
-      </AppText>
-    </View>
-  );
-};
-
-const RankMark = ({ rank, medal }: { rank: number; medal?: string }) => {
-  if (medal) {
-    const color =
-      medal === 'gold'
-        ? theme.colors.warning
-        : medal === 'silver'
-          ? theme.colors.textSubtle
-          : theme.colors.reward;
-
-    return (
-      <View style={styles.rankIcon}>
-        <Ionicons color={color} name="medal" size={25} />
-        <AppText style={styles.rankOnMedal} weight="bold">
-          {rank}
-        </AppText>
-      </View>
-    );
-  }
-
-  return (
-    <AppText style={styles.rankNumber} tone="muted" variant="bodySmall">
-      {rank}
-    </AppText>
   );
 };
 
@@ -195,38 +120,5 @@ const styles = StyleSheet.create({
   },
   rankingRows: {
     gap: theme.spacing.md,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: 44,
-  },
-  myRow: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  rankIcon: {
-    alignItems: 'center',
-    height: 30,
-    justifyContent: 'center',
-    width: 30,
-  },
-  rankOnMedal: {
-    color: theme.colors.inverseText,
-    fontSize: 10,
-    lineHeight: 12,
-    position: 'absolute',
-  },
-  rankNumber: {
-    textAlign: 'center',
-    width: 30,
-  },
-  name: {
-    flex: 1,
   },
 });
