@@ -1,104 +1,126 @@
-import { AppText, Card, Screen } from '@/components';
+import { AppText, Card, EmptyState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { getParticipationHistory } from '../api/get-participation-history';
+import { ParticipatedPollCard } from '../components/participated-poll-card';
+import { ParticipationFilterTabs } from '../components/participation-filter-tabs';
+import { ParticipationSummaryCard } from '../components/participation-summary-card';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
-
-const historyItems = [
-  {
-    id: 'history-1',
-    title: '오늘 하나만 산다면?',
-    choice: '운동화',
-    result: '58%',
-    reward: '+1P',
-    time: '오늘 09:41',
-  },
-  {
-    id: 'history-2',
-    title: '이번 주말엔 어떤 시간이 더 좋아?',
-    choice: '집에서 푹 쉬기',
-    result: '53%',
-    reward: '+1P',
-    time: '어제 21:15',
-  },
-  {
-    id: 'history-3',
-    title: '주말에 뭐 볼까?',
-    choice: '드라마 정주행',
-    result: '55%',
-    reward: '+2P',
-    time: '어제 18:22',
-  },
-];
+import {
+  getTotalParticipationReward,
+  getVisibleParticipatedPolls,
+  participationTabs,
+  type ParticipatedPoll,
+  type ParticipationTabId,
+} from '../utils/participation-history';
 
 export const ParticipationHistoryScreen = () => {
+  const [selectedTabId, setSelectedTabId] = useState<ParticipationTabId>('all');
+  const [participatedPolls, setParticipatedPolls] = useState<
+    ParticipatedPoll[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const visiblePolls = getVisibleParticipatedPolls(
+    participatedPolls,
+    selectedTabId
+  );
+  const selectedTab = participationTabs.find((tab) => tab.id === selectedTabId);
+  const totalReward = getTotalParticipationReward(participatedPolls);
+
+  useEffect(() => {
+    const loadParticipationHistory = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextParticipatedPolls = await getParticipationHistory();
+
+        setParticipatedPolls(nextParticipatedPolls);
+      } catch (error) {
+        console.error('load participation history failed', error);
+        setErrorMessage('참여한 투표를 불러오지 못했어요.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadParticipationHistory();
+  }, []);
+
   return (
     <Screen
       scroll
       contentContainerStyle={styles.content}
       scrollViewProps={{ bounces: false }}
     >
-      <ProfileSubpageHeader title="참여 기록" />
+      <ProfileSubpageHeader title="참여한 투표" />
 
-      <Card style={styles.summaryCard}>
-        <View style={styles.summaryIcon}>
-          <Ionicons
-            color={theme.colors.primaryStrong}
-            name="checkmark-done-outline"
-            size={24}
+      <ParticipationSummaryCard
+        pollCount={participatedPolls.length}
+        totalReward={totalReward}
+      />
+
+      <ParticipationFilterTabs
+        value={selectedTabId}
+        onChange={setSelectedTabId}
+      />
+
+      {isLoading ? (
+        <AppText tone="muted" variant="bodySmall">
+          참여한 투표를 불러오는 중이에요.
+        </AppText>
+      ) : null}
+
+      {!isLoading && errorMessage ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description="잠시 후 다시 시도해 주세요."
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="alert-circle-outline"
+                size={34}
+              />
+            }
+            title={errorMessage}
           />
+        </Card>
+      ) : null}
+
+      {!isLoading && !errorMessage && visiblePolls.length === 0 ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            description={`${
+              selectedTab?.label ?? '선택한'
+            } 참여 투표가 생기면 여기에 모아둘게요.`}
+            icon={
+              <Ionicons
+                color={theme.colors.textSubtle}
+                name="file-tray-outline"
+                size={34}
+              />
+            }
+            title={`아직 ${selectedTab?.label ?? '선택한'} 참여 투표가 없어요`}
+          />
+        </Card>
+      ) : null}
+
+      {!isLoading && !errorMessage && visiblePolls.length > 0 ? (
+        <View style={styles.list}>
+          {visiblePolls.map((poll) => (
+            <ParticipatedPollCard
+              key={poll.id}
+              poll={poll}
+              onPress={() => router.push(`/poll/${poll.id}`)}
+            />
+          ))}
         </View>
-        <View style={styles.summaryCopy}>
-          <AppText variant="bodySmall" weight="bold">
-            이번 달 18개 투표에 참여했어요
-          </AppText>
-          <AppText tone="muted" variant="caption">
-            참여 기록은 로그인 후 기기 변경에도 유지돼요.
-          </AppText>
-        </View>
-      </Card>
-
-      <View style={styles.list}>
-        {historyItems.map((item) => (
-          <Card key={item.id} style={styles.historyCard}>
-            <View style={styles.historyHeader}>
-              <AppText style={styles.historyTitle} variant="bodySmall" weight="bold">
-                {item.title}
-              </AppText>
-              <AppText tone="muted" variant="caption">
-                {item.time}
-              </AppText>
-            </View>
-
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                내 선택
-              </AppText>
-              <AppText variant="caption" weight="bold">
-                {item.choice}
-              </AppText>
-            </View>
-
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                결과 비율
-              </AppText>
-              <AppText variant="caption" weight="bold">
-                {item.result}
-              </AppText>
-            </View>
-
-            <View style={styles.historyMeta}>
-              <AppText tone="muted" variant="caption" weight="semibold">
-                받은 포인트
-              </AppText>
-              <AppText tone="success" variant="caption" weight="bold">
-                {item.reward}
-              </AppText>
-            </View>
-          </Card>
-        ))}
-      </View>
+      ) : null}
     </Screen>
   );
 };
@@ -108,40 +130,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xl,
     paddingBottom: theme.spacing.xxxl,
   },
-  summaryCard: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-  },
-  summaryIcon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    borderRadius: theme.radius.full,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  summaryCopy: {
-    flex: 1,
-    gap: theme.spacing.xs,
+  emptyCard: {
+    paddingVertical: theme.spacing.xl,
   },
   list: {
     gap: theme.spacing.md,
-  },
-  historyCard: {
-    gap: theme.spacing.md,
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    justifyContent: 'space-between',
-  },
-  historyTitle: {
-    flex: 1,
-  },
-  historyMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
 });

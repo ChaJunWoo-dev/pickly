@@ -31,3 +31,7 @@ export const getPollTimeLeft = (expiresAt: string, now = Date.now()) => {
     timeLeftSeconds,
   };
 };
+
+export const isPollExpired = (expiresAt: string, now = Date.now()) => {
+  return new Date(expiresAt).getTime() <= now;
+};

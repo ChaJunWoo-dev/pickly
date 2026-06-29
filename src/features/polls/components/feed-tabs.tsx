@@ -2,8 +2,7 @@ import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-
-export type FeedTab = 'popular' | 'latest' | 'closingSoon';
+import type { FeedTab } from '../types/feed';
 
 type FeedTabItem = {
   label: string;
@@ -17,9 +16,9 @@ type FeedTabsProps = {
 };
 
 const feedTabs: FeedTabItem[] = [
-  { label: '인기', value: 'popular', icon: 'flame' },
-  { label: '최신', value: 'latest', icon: 'time-outline' },
-  { label: '마감임박', value: 'closingSoon', icon: 'hourglass-outline' },
+  { label: '인기순', value: 'popular', icon: 'flame' },
+  { label: '최신순', value: 'latest', icon: 'time-outline' },
+  { label: '마감순', value: 'closingSoon', icon: 'hourglass-outline' },
 ];
 
 export const FeedTabs = ({ value, onChange }: FeedTabsProps) => {
