@@ -6,6 +6,7 @@ import {
   PollCard,
   type PollCardData,
 } from '@/features/polls/components/poll-card';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { router } from 'expo-router';
@@ -37,6 +38,7 @@ export const SavedPollsScreen = () => {
 
       setSavedPolls(nextSavedPolls);
     } catch {
+      showErrorToast('저장한 투표를 불러오지 못했어요');
       setErrorMessage('저장한 투표를 불러오지 못했어요');
     } finally {
       setIsLoadingSavedPolls(false);

@@ -2,6 +2,7 @@ import { Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { ProfileSubpageHeader } from '@/features/profile/components/profile-subpage-header';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
@@ -25,6 +26,7 @@ export const PointTransactionHistoryScreen = () => {
 
         setTransactions(nextTransactions);
       } catch {
+        showErrorToast('포인트 내역을 불러오지 못했어요');
         setErrorMessage('포인트 내역을 불러오지 못했어요');
         setTransactions([]);
       } finally {
