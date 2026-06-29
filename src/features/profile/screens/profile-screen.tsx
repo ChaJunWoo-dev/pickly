@@ -1,6 +1,7 @@
 import { AppIconButton, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { getCurrentPointSummary } from '@/features/rewards/api/point-summary';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -26,6 +27,7 @@ export const ProfileScreen = () => {
           setProfile(nextProfile);
           setCurrentPoints(pointSummary.currentPoints);
         } catch {
+          showErrorToast('내 정보를 불러오지 못했어요');
           setProfile(null);
           setCurrentPoints(0);
         }
