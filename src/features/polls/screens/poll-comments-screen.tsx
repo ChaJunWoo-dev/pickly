@@ -1,6 +1,7 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import { logger } from '@/lib/logger';
 import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -50,6 +51,8 @@ export const PollCommentsScreen = () => {
         void sendCommentPushNotification({
           recipientUserId: pollOwnerId,
           pollId: id,
+        }).catch((error) => {
+          logger.warn('Failed to send comment push notification.', { error });
         });
       }
     } catch {

@@ -1,5 +1,6 @@
 import { Card, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { logger } from '@/lib/logger';
 import { showErrorToast } from '@/lib/toast';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, StyleSheet } from 'react-native';
@@ -95,8 +96,8 @@ export const NotificationSettingsScreen = () => {
   const savePushToken = async () => {
     try {
       await registerPushToken();
-    } catch {
-      Alert.alert('알림 설정 실패', '기기 정보를 저장하지 못했어요');
+    } catch (error) {
+      logger.warn('Failed to register push token.', { error });
     }
   };
 
