@@ -15,7 +15,10 @@ import {
 } from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
-import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewards';
+import {
+  POLL_CREATE_REWARD_POINTS,
+  POLL_PARTICIPATION_REWARD_POINTS,
+} from '../constants/config/poll-rewards';
 import { getPollExpiresAt, type PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
@@ -97,7 +100,7 @@ export const CreatePollScreen = () => {
 
       Alert.alert(
         '생성 완료',
-        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`,
+        `${POLL_CREATE_REWARD_POINTS}포인트를 받았어요`,
         [
           {
             text: '확인',
