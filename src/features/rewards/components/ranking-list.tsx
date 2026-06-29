@@ -1,4 +1,4 @@
-import { AppText } from '@/components';
+import { AppText, EmptyInfoRow } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ type RankingListProps = {
 export const RankingList = ({ myRanking, rankings }: RankingListProps) => {
   const { appTheme } = useThemeMode();
   const visibleRankings = rankings.slice(0, 10);
+  const isEmpty = visibleRankings.length === 0;
   const isMyRankingInList = myRanking
     ? visibleRankings.some((ranking) => ranking.userId === myRanking.userId)
     : false;
@@ -56,24 +57,39 @@ export const RankingList = ({ myRanking, rankings }: RankingListProps) => {
       />
 
       <View style={styles.list}>
-        <ScrollView
-          contentContainerStyle={styles.rankingRows}
-          nestedScrollEnabled
-          showsVerticalScrollIndicator={false}
-          style={styles.rankingScroll}
-        >
-          {visibleRankings.map((ranking) => {
-            const isMine = myRanking?.userId === ranking.userId;
-
-            return (
-              <RankingRow
-                key={ranking.userId}
-                ranking={ranking}
-                variant={isMine ? 'mine' : 'default'}
+        {isEmpty ? (
+          <EmptyInfoRow
+            icon={
+              <Ionicons
+                color={appTheme.colors.textMuted}
+                name="trophy-outline"
+                size={18}
               />
-            );
-          })}
-        </ScrollView>
+            }
+            iconBackgroundColor={appTheme.colors.surfaceMuted}
+            title="아직 이번 주 랭킹이 없어요"
+            description="투표에 참여하면 주간 랭킹에 반영돼요"
+          />
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.rankingRows}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={false}
+            style={styles.rankingScroll}
+          >
+            {visibleRankings.map((ranking) => {
+              const isMine = myRanking?.userId === ranking.userId;
+
+              return (
+                <RankingRow
+                  key={ranking.userId}
+                  ranking={ranking}
+                  variant={isMine ? 'mine' : 'default'}
+                />
+              );
+            })}
+          </ScrollView>
+        )}
 
         {myRanking && !isMyRankingInList ? (
           <RankingRow ranking={myRanking} variant="mine" />
