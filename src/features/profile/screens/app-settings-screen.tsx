@@ -2,6 +2,7 @@ import { AppText, Card, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { ProfileSubpageHeader } from '../components/profile-subpage-header';
@@ -15,7 +16,7 @@ const settings = [
     id: 'notifications',
     icon: 'notifications-outline',
     title: '투표 알림',
-    description: '마감 임박과 결과 알림',
+    description: '마감과 결과 알림',
   },
   {
     id: 'appearance',
@@ -32,6 +33,7 @@ const settings = [
 ] as const;
 
 export const AppSettingsScreen = () => {
+  const router = useRouter();
   const { appTheme, setThemeMode, themeMode } = useThemeMode();
   const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
 
@@ -49,6 +51,10 @@ export const AppSettingsScreen = () => {
             key={item.id}
             accessibilityRole="button"
             onPress={() => {
+              if (item.id === 'notifications') {
+                router.push('/profile/notifications');
+              }
+
               if (item.id === 'appearance') {
                 setIsThemeModalVisible(true);
               }

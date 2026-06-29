@@ -1,4 +1,4 @@
-﻿import type { PollCardData } from '../components/poll-card';
+import type { PollCardData } from '../components/poll-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 import { isPollExpired } from './poll-deadline';
 

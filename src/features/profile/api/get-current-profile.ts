@@ -1,28 +1,12 @@
 import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import type { Ionicons } from '@expo/vector-icons';
 import { createDefaultProfile } from './create-default-profile';
-
-type BadgeIcon = keyof typeof Ionicons.glyphMap;
-
-type ProfileRow = {
-  avatar_url: string | null;
-  badge_id: string | null;
-  id: string;
-  nickname: string | null;
-};
-
-type RewardBadgeRow = {
-  icon: BadgeIcon;
-  id: string;
-};
-
-export type CurrentProfile = {
-  avatarUrl: string | null;
-  badgeIcon: BadgeIcon | null;
-  id: string;
-  nickname: string;
-};
+import {
+  mapCurrentProfileRow,
+  type CurrentProfile,
+  type ProfileRewardBadgeRow,
+  type ProfileRow,
+} from '../utils/current-profile';
 
 export const getCurrentProfile = async (): Promise<CurrentProfile | null> => {
   const user = await ensureGuestSession();
@@ -66,7 +50,7 @@ export const getCurrentProfile = async (): Promise<CurrentProfile | null> => {
   if (!profile) {
     return null;
   }
-  let badgeIcon: BadgeIcon | null = null;
+  let badgeIcon: CurrentProfile['badgeIcon'] = null;
 
   if (profile.badge_id) {
     const { data: badge, error: badgeError } = await supabase
@@ -79,15 +63,8 @@ export const getCurrentProfile = async (): Promise<CurrentProfile | null> => {
       throw badgeError;
     }
 
-    badgeIcon = ((badge as RewardBadgeRow | null)?.icon ?? null) as
-      | BadgeIcon
-      | null;
+    badgeIcon = (badge as ProfileRewardBadgeRow | null)?.icon ?? null;
   }
 
-  return {
-    avatarUrl: profile.avatar_url,
-    badgeIcon,
-    id: profile.id,
-    nickname: profile.nickname ?? '익명',
-  };
+  return mapCurrentProfileRow(profile, badgeIcon);
 };

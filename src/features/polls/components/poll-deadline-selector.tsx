@@ -9,10 +9,10 @@ const deadlineOptions = [
   { id: '6h', label: '6시간' },
   { id: '12h', label: '12시간' },
   { id: '24h', label: '1일' },
-] satisfies ReadonlyArray<{
+] satisfies readonly {
   id: PollDeadlineId;
   label: string;
-}>;
+}[];
 
 type PollDeadlineSelectorProps = {
   selectedDeadlineId: PollDeadlineId;

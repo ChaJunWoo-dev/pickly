@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "pickly54",
-    "slug": "pickly54",
+    "slug": "pickly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -41,9 +41,16 @@
       ],
       "expo-font"
     ],
+    "extra": {
+      "eas": {
+        "projectId": "7120947e-2f66-43c7-8ed3-1075cc2fc8da"
+      },
+      "router": {}
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "ori33"
   }
 }
