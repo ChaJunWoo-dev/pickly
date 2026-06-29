@@ -46,3 +46,4 @@ docs/
 
 .env
 .sql
+supabase/.temp/

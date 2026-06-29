@@ -29,12 +29,6 @@ const notificationOptions = [
     description: '내가 만든 투표가 마감되면 알려줘요',
   },
   {
-    id: 'votedPollResult',
-    icon: 'stats-chart-outline',
-    title: '참여한 투표 결과',
-    description: '참여한 투표가 마감되면 결과를 알려줘요',
-  },
-  {
     id: 'comments',
     icon: 'chatbubble-ellipses-outline',
     title: '댓글 알림',
@@ -49,7 +43,6 @@ type NotificationState = Record<NotificationOptionId, boolean>;
 const initialNotificationState: NotificationState = {
   comments: true,
   createdPollClosed: true,
-  votedPollResult: true,
 };
 
 const initialPermission: NotificationPermission = {
@@ -63,7 +56,6 @@ const mapSettingsToState = (
   return {
     comments: settings.commentEnabled,
     createdPollClosed: settings.createdPollClosedEnabled,
-    votedPollResult: settings.votedPollResultEnabled,
   };
 };
 
@@ -73,10 +65,6 @@ const getNotificationSettingUpdate = (
 ): Partial<NotificationSettings> => {
   if (optionId === 'createdPollClosed') {
     return { createdPollClosedEnabled: isEnabled };
-  }
-
-  if (optionId === 'votedPollResult') {
-    return { votedPollResultEnabled: isEnabled };
   }
 
   return { commentEnabled: isEnabled };
