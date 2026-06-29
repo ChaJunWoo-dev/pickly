@@ -23,8 +23,7 @@ export const featuredPolls: PollCardData[] = [
     ],
     rewardPoints: 12,
     participantCount: 1248,
-    timeLeft: '02:34:33',
-    timeLeftSeconds: 9273,
+    expiresAt: new Date(Date.now() + 9273 * 1000).toISOString(),
   },
   {
     id: 'weekend-plan',
@@ -36,8 +35,7 @@ export const featuredPolls: PollCardData[] = [
     ],
     rewardPoints: 8,
     participantCount: 903,
-    timeLeft: '05:12:08',
-    timeLeftSeconds: 18728,
+    expiresAt: new Date(Date.now() + 18728 * 1000).toISOString(),
     hasVoted: true,
   },
   {
@@ -69,7 +67,6 @@ export const featuredPolls: PollCardData[] = [
     ],
     rewardPoints: 20,
     participantCount: 2311,
-    timeLeft: '28:48:11',
-    timeLeftSeconds: 103691,
+    expiresAt: new Date(Date.now() + 103691 * 1000).toISOString(),
   },
 ];

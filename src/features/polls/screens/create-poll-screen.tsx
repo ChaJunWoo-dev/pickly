@@ -1,14 +1,119 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { ensureGuestSession } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { PollCategorySelector } from '../components/poll-category-selector';
 import { PollDeadlineSelector } from '../components/poll-deadline-selector';
-import { PollOptionFields } from '../components/poll-option-fields';
+import {
+  PollOptionFields,
+  type PollOptionInput,
+} from '../components/poll-option-fields';
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
+import type { PollCategoryId } from '../constants/config/poll-categories';
+import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewards';
+import { getPollExpiresAt, PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
+  const QUESTION_MAX_LENGTH = 50;
+  const OPTION_MAX_LENGTH = 20;
+  const MAX_OPTION_COUNT = 4;
+
+  const [question, setQuestion] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<PollCategoryId>('food');
+  const [selectedDeadlineId, setSelectedDeadlineId] =
+    useState<PollDeadlineId>('24h');
+  const [options, setOptions] = useState<PollOptionInput[]>([
+    { id: 'option-1', text: '' },
+    { id: 'option-2', text: '' },
+  ]);
+  const nextOptionIdRef = useRef(3);
+
+  const trimmedQuestion = question.trim();
+  const filledOptions = options.filter((option) => option.text.trim());
+  const canCreatePoll = trimmedQuestion.length > 0 && filledOptions.length >= 2;
+  const [isCreating, setIsCreating] = useState(false);
+
+  const createOptionId = () => {
+    const id = `option-${nextOptionIdRef.current}`;
+    nextOptionIdRef.current += 1;
+
+    return id;
+  };
+
+  const handleChangeOptionText = (optionId: string, text: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.map((option) =>
+        option.id === optionId ? { ...option, text } : option
+      )
+    );
+  };
+
+  const handleAddOption = () => {
+    setOptions((prevOptions) => {
+      if (prevOptions.length >= MAX_OPTION_COUNT) return prevOptions;
+
+      return [...prevOptions, { id: createOptionId(), text: '' }];
+    });
+  };
+
+  const handleRemoveOption = (optionId: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.filter((option) => option.id !== optionId)
+    );
+  };
+
+  const handleCreatePoll = async () => {
+    if (!canCreatePoll || isCreating) return;
+
+    setIsCreating(true);
+
+    const user = await ensureGuestSession();
+
+    if (!user) {
+      Alert.alert('생성 실패', '게스트 로그인에 실패했어요');
+      return;
+    }
+
+    try {
+      const { data: pollId, error: pollError } = await supabase.rpc(
+        'create_poll_with_options',
+        {
+          p_title: trimmedQuestion,
+          p_category: selectedCategoryId,
+          p_reward_points: POLL_PARTICIPATION_REWARD_POINTS,
+          p_expires_at: getPollExpiresAt(selectedDeadlineId),
+          p_options: filledOptions.map((option) => option.text.trim()),
+        }
+      );
+
+      if (pollError || !pollId) throw new Error();
+
+      Alert.alert(
+        '생성 완료',
+        `${POLL_PARTICIPATION_REWARD_POINTS}포인트를 받았어요`,
+        [
+          {
+            text: '확인',
+            onPress: () =>
+              router.replace({
+                pathname: '/poll/[id]',
+                params: { id: pollId },
+              }),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert('생성 실패', '투표를 만들지 못했어요');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <Screen
       scroll
@@ -34,23 +139,47 @@ export const CreatePollScreen = () => {
           질문을 입력하세요
         </AppText>
         <AppInput
-          placeholder="예)오늘 점심은 뭐 먹을까?"
+          placeholder="예) 오늘 점심은 뭐 먹을까?"
           style={styles.inputField}
+          value={question}
+          maxLength={QUESTION_MAX_LENGTH}
+          onChangeText={(text) => setQuestion(text)}
+          rightElement={
+            <AppText
+              tone="muted"
+              variant="caption"
+              style={styles.characterCount}
+            >
+              {question.length}/50
+            </AppText>
+          }
         />
-        <AppText tone="muted" variant="caption" style={styles.characterCount}>
-          0/50
-        </AppText>
       </View>
 
-      <PollCategorySelector />
+      <PollCategorySelector
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={setSelectedCategoryId}
+      />
 
-      <PollOptionFields />
+      <PollOptionFields
+        options={options}
+        optionMaxLength={OPTION_MAX_LENGTH}
+        maxOptionCount={MAX_OPTION_COUNT}
+        onAddOption={handleAddOption}
+        onChangeOptionText={handleChangeOptionText}
+        onRemoveOption={handleRemoveOption}
+      />
 
-      <PollDeadlineSelector />
+      <PollDeadlineSelector
+        selectedDeadlineId={selectedDeadlineId}
+        onSelectDeadline={setSelectedDeadlineId}
+      />
 
       <PollRewardPreviewCard />
 
-      <AppButton>투표 생성하기</AppButton>
+      <AppButton disabled={!canCreatePoll} onPress={handleCreatePoll}>
+        투표 생성하기
+      </AppButton>
     </Screen>
   );
 };

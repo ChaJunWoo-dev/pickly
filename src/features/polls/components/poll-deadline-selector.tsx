@@ -1,18 +1,27 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { PollDeadlineId } from '../utils/poll-deadline';
 
 const deadlineOptions = [
   { id: '1h', label: '1시간' },
   { id: '6h', label: '6시간' },
   { id: '12h', label: '12시간' },
-  { id: '24h', label: '24시간' },
-  { id: '1d', label: '1일' },
-];
+  { id: '24h', label: '1일' },
+] satisfies ReadonlyArray<{
+  id: PollDeadlineId;
+  label: string;
+}>;
 
-const selectedDeadlineId = '24h';
+type PollDeadlineSelectorProps = {
+  selectedDeadlineId: PollDeadlineId;
+  onSelectDeadline: (deadlineId: PollDeadlineId) => void;
+};
 
-export const PollDeadlineSelector = () => {
+export const PollDeadlineSelector = ({
+  selectedDeadlineId,
+  onSelectDeadline,
+}: PollDeadlineSelectorProps) => {
   return (
     <View style={styles.field}>
       <AppText variant="body" weight="semibold">
@@ -27,6 +36,8 @@ export const PollDeadlineSelector = () => {
             <Pressable
               key={option.id}
               accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              onPress={() => onSelectDeadline(option.id)}
               style={[
                 styles.deadlineOption,
                 isSelected && styles.deadlineOptionSelected,

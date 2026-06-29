@@ -1,6 +1,11 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { StyleSheet, View } from 'react-native';
+import {
+  POLL_MAX_REWARD_POINTS,
+  POLL_PARTICIPATION_REWARD_POINTS,
+  POLL_POPULAR_BONUS_POINTS,
+} from '../constants/config/poll-rewards';
 
 export const PollRewardPreviewCard = () => {
   return (
@@ -13,7 +18,7 @@ export const PollRewardPreviewCard = () => {
 
           <View style={styles.rewardBadge}>
             <AppText tone="reward" variant="bodySmall" weight="bold">
-              +1P
+              +{POLL_MAX_REWARD_POINTS}P
             </AppText>
           </View>
         </View>
@@ -21,10 +26,10 @@ export const PollRewardPreviewCard = () => {
         <View style={styles.rewardRows}>
           <View style={styles.rewardRow}>
             <AppText tone="muted" variant="bodySmall" weight="semibold">
-              기본 참여 보상
+              참여 시 보상
             </AppText>
             <AppText variant="bodySmall" weight="bold">
-              +1P
+              +{POLL_PARTICIPATION_REWARD_POINTS}P
             </AppText>
           </View>
 
@@ -33,7 +38,7 @@ export const PollRewardPreviewCard = () => {
               인기 투표 보너스
             </AppText>
             <AppText variant="bodySmall" weight="bold">
-              +2P
+              +{POLL_POPULAR_BONUS_POINTS}P
             </AppText>
           </View>
         </View>
@@ -45,7 +50,7 @@ export const PollRewardPreviewCard = () => {
             최대 획득 가능
           </AppText>
           <AppText tone="success" variant="subtitle" weight="bold">
-            +3P
+            +{POLL_MAX_REWARD_POINTS}P
           </AppText>
         </View>
       </Card>

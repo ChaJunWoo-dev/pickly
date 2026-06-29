@@ -1,7 +1,7 @@
 import { AppText, Card } from '@/components';
 import { theme } from '@/constants/theme';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { PollCategoryId } from '../data/poll-categories';
+import type { PollCategoryId } from '../constants/config/poll-categories';
 import { PollCategoryPill } from './poll-category-pill';
 import { PollOptionList } from './poll-option-list';
 import { PollTimer } from './poll-timer';
@@ -20,8 +20,7 @@ export type PollCardData = {
   options: PollOptionPreview[];
   rewardPoints: number;
   participantCount: number;
-  timeLeft: string;
-  timeLeftSeconds: number;
+  expiresAt: string;
   hasVoted?: boolean;
 };
 
@@ -36,10 +35,7 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
     <Card elevated style={styles.card}>
       <View style={styles.header}>
         <PollCategoryPill categoryId={poll.categoryId} />
-        <PollTimer
-          timeLeft={poll.timeLeft}
-          timeLeftSeconds={poll.timeLeftSeconds}
-        />
+        <PollTimer expiresAt={poll.expiresAt} />
       </View>
 
       <Pressable
@@ -67,11 +63,7 @@ export const PollCard = ({ poll, onOpen, onVote }: PollCardProps) => {
         </View>
       </Pressable>
 
-      <PollOptionList
-        onVote={onVote}
-        options={poll.options}
-        pollId={poll.id}
-      />
+      <PollOptionList onVote={onVote} options={poll.options} pollId={poll.id} />
     </Card>
   );
 };
