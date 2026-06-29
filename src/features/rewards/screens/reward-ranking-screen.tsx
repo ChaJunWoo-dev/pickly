@@ -1,9 +1,9 @@
-import { AppIconButton, AppText, Screen } from '@/components';
+import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { showErrorToast } from '@/lib/toast';
 import { getPointTransactions } from '../api/point-transactions';
 import { getMyWeeklyRanking, getWeeklyRankings } from '../api/ranking';
 import { getRewardItems } from '../api/reward-items';
@@ -103,6 +103,8 @@ export const RewardRankingScreen = () => {
         setRankings(ranking);
         setMyRanking(myRanking);
       } catch {
+        showErrorToast('리워드 정보를 불러오지 못했어요');
+
         setPointSummary(initialPointSummary);
         setPointTransactions([]);
         setRankings([]);
@@ -115,6 +117,7 @@ export const RewardRankingScreen = () => {
         const nextRewardItems = await getRewardItems();
         setRewardItems(nextRewardItems);
       } catch {
+        showErrorToast('상점 정보를 불러오지 못했어요');
         setRewardItems([]);
       }
     };
@@ -130,21 +133,9 @@ export const RewardRankingScreen = () => {
       scrollViewProps={{ bounces: false }}
     >
       <View style={styles.header}>
-        <View style={styles.headerSpacer} />
         <AppText variant="subtitle" weight="bold">
           리워드 & 랭킹
         </AppText>
-        <AppIconButton
-          icon={
-            <Ionicons
-              color={theme.colors.textMuted}
-              name="help-circle-outline"
-              size={24}
-            />
-          }
-          size="sm"
-          variant="plain"
-        />
       </View>
 
       <RewardSummaryCard summary={pointSummary} />
@@ -170,10 +161,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  headerSpacer: {
-    height: 32,
-    width: 32,
+    justifyContent: 'center',
   },
 });

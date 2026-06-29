@@ -6,6 +6,7 @@ import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -37,6 +38,7 @@ export const HomeFeedScreen = () => {
 
       setPolls(nextPolls);
     } catch {
+      showErrorToast('투표를 불러오지 못했어요');
       setPolls([]);
     } finally {
       setIsLoadingPolls(false);
@@ -48,6 +50,7 @@ export const HomeFeedScreen = () => {
       const pointSummary = await getCurrentPointSummary();
       setCurrentPoints(pointSummary.currentPoints);
     } catch {
+      showErrorToast('포인트를 불러오지 못했어요');
       setCurrentPoints(0);
     }
   }, []);
@@ -94,7 +97,7 @@ export const HomeFeedScreen = () => {
         return;
       }
 
-      Alert.alert('투표 실패', '투표를 저장하지 못했어요');
+      showErrorToast('투표를 저장하지 못했어요');
     } finally {
       setVotingPollId(null);
     }

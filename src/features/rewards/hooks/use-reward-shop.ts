@@ -2,6 +2,7 @@ import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
+import { showErrorToast } from '@/lib/toast';
 import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { getBoostablePolls } from '../api/boostable-polls';
@@ -122,7 +123,7 @@ export const useRewardShop = ({
       closeBoosterModal();
       showToast('투표 부스터가 적용됐어요');
     } catch {
-      Alert.alert('부스터 구매 실패', '투표 부스터를 적용하지 못했어요');
+      showErrorToast('투표 부스터를 적용하지 못했어요');
     } finally {
       setIsPurchasingBooster(false);
     }
@@ -153,7 +154,7 @@ export const useRewardShop = ({
       });
       setRevealedBadge(result.badge);
     } catch {
-      Alert.alert('배지 구매 실패', '랜덤 배지를 구매하지 못했어요');
+      showErrorToast('랜덤 배지를 구매하지 못했어요');
     } finally {
       setIsPurchasingBadge(false);
     }
@@ -180,7 +181,7 @@ export const useRewardShop = ({
         return;
       }
 
-      Alert.alert('닉네임 변경 실패', '닉네임을 변경하지 못했어요');
+      showErrorToast('닉네임을 변경하지 못했어요');
     } finally {
       setIsPurchasingNickname(false);
     }
@@ -209,6 +210,7 @@ export const useRewardShop = ({
         const nextBadges = await getRewardBadges();
         setBadges(nextBadges);
       } catch {
+        showErrorToast('배지 목록을 불러오지 못했어요');
         setBadges([]);
       } finally {
         setIsLoadingBadges(false);
@@ -228,6 +230,7 @@ export const useRewardShop = ({
         const nextPolls = await getBoostablePolls();
         setBoostablePolls(nextPolls);
       } catch {
+        showErrorToast('적용할 투표를 불러오지 못했어요');
         setBoostablePolls([]);
       } finally {
         setIsLoadingBoostablePolls(false);

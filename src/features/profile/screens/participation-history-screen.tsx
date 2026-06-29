@@ -1,6 +1,7 @@
 import { Card, EmptyState, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -44,6 +45,7 @@ export const ParticipationHistoryScreen = () => {
 
         setParticipatedPolls(nextParticipatedPolls);
       } catch {
+        showErrorToast('참여한 투표를 불러오지 못했어요');
         setErrorMessage('참여한 투표를 불러오지 못했어요');
       } finally {
         setIsLoading(false);
