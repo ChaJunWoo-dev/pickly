@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { useColorScheme } from 'react-native';
 import { darkTheme, theme, type AppTheme } from '@/constants/theme';
+import { logger } from '@/lib/logger';
 
 const THEME_MODE_STORAGE_KEY = 'themeMode';
 
@@ -48,7 +49,8 @@ export const ThemeModeProvider = ({ children }: { children: ReactNode }) => {
         if (isThemeMode(savedThemeMode)) {
           setThemeModeState(savedThemeMode);
         }
-      } catch {
+      } catch (error) {
+        logger.warn('Failed to load theme mode.', { error });
         setThemeModeState('system');
       }
     };
