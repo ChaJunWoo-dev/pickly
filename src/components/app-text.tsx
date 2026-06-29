@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Text, type TextProps, type TextStyle } from 'react-native';
 
 export type AppTextVariant =
@@ -56,18 +57,6 @@ const variantStyles: Record<AppTextVariant, TextStyle> = {
   },
 };
 
-const toneColors: Record<AppTextTone, string> = {
-  primary: theme.colors.text,
-  muted: theme.colors.textMuted,
-  subtle: theme.colors.textSubtle,
-  inverse: theme.colors.inverseText,
-  accent: theme.colors.secondary,
-  success: theme.colors.success,
-  warning: theme.colors.warning,
-  reward: theme.colors.reward,
-  danger: theme.colors.danger,
-};
-
 const fontWeights: Record<AppTextWeight, TextStyle['fontWeight']> = {
   regular: '400',
   medium: '500',
@@ -83,19 +72,34 @@ export const AppText = ({
   style,
   children,
   ...props
-}: AppTextProps) => (
-  <Text
-    {...props}
-    style={[
-      {
-        color: toneColors[tone],
-        fontWeight: fontWeights[weight],
-        textAlign: align,
-      },
-      variantStyles[variant],
-      style,
-    ]}
-  >
-    {children}
-  </Text>
-);
+}: AppTextProps) => {
+  const { appTheme } = useThemeMode();
+  const toneColors: Record<AppTextTone, string> = {
+    primary: appTheme.colors.text,
+    muted: appTheme.colors.textMuted,
+    subtle: appTheme.colors.textSubtle,
+    inverse: appTheme.colors.inverseText,
+    accent: appTheme.colors.secondary,
+    success: appTheme.colors.success,
+    warning: appTheme.colors.warning,
+    reward: appTheme.colors.reward,
+    danger: appTheme.colors.danger,
+  };
+
+  return (
+    <Text
+      {...props}
+      style={[
+        {
+          color: toneColors[tone],
+          fontWeight: fontWeights[weight],
+          textAlign: align,
+        },
+        variantStyles[variant],
+        style,
+      ]}
+    >
+      {children}
+    </Text>
+  );
+};

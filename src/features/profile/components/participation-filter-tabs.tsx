@@ -1,5 +1,6 @@
 import { AppText } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { Pressable, StyleSheet, View } from 'react-native';
 import {
   participationTabs,
@@ -15,8 +16,18 @@ export const ParticipationFilterTabs = ({
   value,
   onChange,
 }: ParticipationFilterTabsProps) => {
+  const { appTheme } = useThemeMode();
+
   return (
-    <View style={styles.tabList}>
+    <View
+      style={[
+        styles.tabList,
+        {
+          backgroundColor: appTheme.colors.surface,
+          borderColor: appTheme.colors.border,
+        },
+      ]}
+    >
       {participationTabs.map((tab) => {
         const isSelected = tab.id === value;
 
@@ -26,7 +37,13 @@ export const ParticipationFilterTabs = ({
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
             onPress={() => onChange(tab.id)}
-            style={[styles.tabButton, isSelected && styles.selectedTabButton]}
+            style={[
+              styles.tabButton,
+              isSelected && {
+                backgroundColor: appTheme.colors.primarySoft,
+                borderColor: appTheme.colors.primary,
+              },
+            ]}
           >
             <AppText
               tone={isSelected ? 'primary' : 'muted'}
@@ -44,8 +61,6 @@ export const ParticipationFilterTabs = ({
 
 const styles = StyleSheet.create({
   tabList: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.full,
     borderWidth: 1,
     flexDirection: 'row',
@@ -53,12 +68,11 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
     borderRadius: theme.radius.full,
     flex: 1,
     justifyContent: 'center',
     minHeight: 34,
-  },
-  selectedTabButton: {
-    backgroundColor: theme.colors.primarySoft,
   },
 });

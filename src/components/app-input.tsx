@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { AppText } from './app-text';
 import { useState } from 'react';
 import {
@@ -41,14 +42,25 @@ export const AppInput = ({
   inputStyle,
   editable = true,
   style,
-  placeholderTextColor = theme.colors.textSubtle,
+  placeholderTextColor,
   onBlur,
   onFocus,
   multiline,
   ...props
 }: AppInputProps) => {
+  const { appTheme } = useThemeMode();
   const [focused, setFocused] = useState(false);
   const hasError = Boolean(error);
+  const variantStyles: Record<AppInputVariant, ViewStyle> = {
+    outline: {
+      backgroundColor: appTheme.colors.surface,
+      borderColor: appTheme.colors.border,
+    },
+    filled: {
+      backgroundColor: appTheme.colors.surfaceMuted,
+      borderColor: appTheme.colors.surfaceMuted,
+    },
+  };
 
   const handleFocus: NonNullable<TextInputProps['onFocus']> = (event) => {
     setFocused(true);
@@ -74,9 +86,9 @@ export const AppInput = ({
           variantStyles[variant],
           sizeStyles[size],
           multiline && styles.multilineFrame,
-          focused && !hasError && styles.focusedFrame,
-          hasError && styles.errorFrame,
           !editable && styles.disabledFrame,
+          focused && !hasError && { borderColor: appTheme.colors.primaryStrong },
+          hasError && { borderColor: appTheme.colors.danger },
         ]}
       >
         {leftElement ? <View style={styles.sideElement}>{leftElement}</View> : null}
@@ -87,11 +99,12 @@ export const AppInput = ({
           multiline={multiline}
           onBlur={handleBlur}
           onFocus={handleFocus}
-          placeholderTextColor={placeholderTextColor}
+          placeholderTextColor={placeholderTextColor ?? appTheme.colors.textSubtle}
           style={[
             styles.input,
+            { color: appTheme.colors.text },
             multiline && styles.multilineInput,
-            !editable && styles.disabledInput,
+            !editable && { color: appTheme.colors.textMuted },
             inputStyle,
             style,
           ]}
@@ -113,17 +126,6 @@ export const AppInput = ({
       ) : null}
     </View>
   );
-};
-
-const variantStyles: Record<AppInputVariant, ViewStyle> = {
-  outline: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-  },
-  filled: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.surfaceMuted,
-  },
 };
 
 const sizeStyles: Record<AppInputSize, ViewStyle> = {
@@ -150,7 +152,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   input: {
-    color: theme.colors.text,
     flex: 1,
     fontSize: theme.fontSize.md,
     lineHeight: theme.lineHeight.md,
@@ -160,12 +161,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: theme.spacing.xs,
-  },
-  errorFrame: {
-    borderColor: theme.colors.danger,
-  },
-  focusedFrame: {
-    borderColor: theme.colors.primaryStrong,
   },
   multilineFrame: {
     alignItems: 'flex-start',
@@ -178,9 +173,6 @@ const styles = StyleSheet.create({
   },
   disabledFrame: {
     opacity: 0.55,
-  },
-  disabledInput: {
-    color: theme.colors.textMuted,
   },
   message: {
     marginTop: theme.spacing.xs,

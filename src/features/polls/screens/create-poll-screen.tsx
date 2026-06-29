@@ -1,5 +1,6 @@
 import { AppButton, AppInput, AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { ensureGuestSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,9 +16,10 @@ import {
 import { PollRewardPreviewCard } from '../components/poll-reward-preview-card';
 import type { PollCategoryId } from '../constants/config/poll-categories';
 import { POLL_PARTICIPATION_REWARD_POINTS } from '../constants/config/poll-rewards';
-import { getPollExpiresAt, PollDeadlineId } from '../utils/poll-deadline';
+import { getPollExpiresAt, type PollDeadlineId } from '../utils/poll-deadline';
 
 export const CreatePollScreen = () => {
+  const { appTheme } = useThemeMode();
   const QUESTION_MAX_LENGTH = 50;
   const OPTION_MAX_LENGTH = 20;
   const MAX_OPTION_COUNT = 4;
@@ -31,12 +33,12 @@ export const CreatePollScreen = () => {
     { id: 'option-1', text: '' },
     { id: 'option-2', text: '' },
   ]);
+  const [isCreating, setIsCreating] = useState(false);
   const nextOptionIdRef = useRef(3);
 
   const trimmedQuestion = question.trim();
   const filledOptions = options.filter((option) => option.text.trim());
   const canCreatePoll = trimmedQuestion.length > 0 && filledOptions.length >= 2;
-  const [isCreating, setIsCreating] = useState(false);
 
   const createOptionId = () => {
     const id = `option-${nextOptionIdRef.current}`;
@@ -72,14 +74,14 @@ export const CreatePollScreen = () => {
 
     setIsCreating(true);
 
-    const user = await ensureGuestSession();
-
-    if (!user) {
-      Alert.alert('생성 실패', '게스트 로그인에 실패했어요');
-      return;
-    }
-
     try {
+      const user = await ensureGuestSession();
+
+      if (!user) {
+        Alert.alert('생성 실패', '게스트 로그인에 실패했어요');
+        return;
+      }
+
       const { data: pollId, error: pollError } = await supabase.rpc(
         'create_poll_with_options',
         {
@@ -91,7 +93,7 @@ export const CreatePollScreen = () => {
         }
       );
 
-      if (pollError || !pollId) throw new Error();
+      if (pollError || !pollId) throw pollError ?? new Error('Poll id missing.');
 
       Alert.alert(
         '생성 완료',
@@ -107,7 +109,7 @@ export const CreatePollScreen = () => {
           },
         ]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('생성 실패', '투표를 만들지 못했어요');
     } finally {
       setIsCreating(false);
@@ -126,7 +128,7 @@ export const CreatePollScreen = () => {
           onPress={() => router.back()}
           style={styles.iconButton}
         >
-          <Ionicons color={theme.colors.text} name="chevron-back" size={22} />
+          <Ionicons color={appTheme.colors.text} name="chevron-back" size={22} />
         </Pressable>
 
         <AppText variant="subtitle" weight="bold" style={styles.topBarTitle}>
@@ -177,7 +179,10 @@ export const CreatePollScreen = () => {
 
       <PollRewardPreviewCard />
 
-      <AppButton disabled={!canCreatePoll} onPress={handleCreatePoll}>
+      <AppButton
+        disabled={!canCreatePoll || isCreating}
+        onPress={handleCreatePoll}
+      >
         투표 생성하기
       </AppButton>
     </Screen>

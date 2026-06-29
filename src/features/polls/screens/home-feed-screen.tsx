@@ -1,6 +1,10 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
-import { POSTGRES_UNIQUE_VIOLATION_CODE } from '@/lib/database-errors';
+import { useThemeMode } from '@/contexts/theme-mode';
+import {
+  hasErrorCode,
+  POSTGRES_UNIQUE_VIOLATION_CODE,
+} from '@/lib/database-errors';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -15,6 +19,7 @@ import { isPollExpired } from '../utils/poll-deadline';
 export const HomeFeedScreen = () => {
   const router = useRouter();
   const isFocused = useIsFocused();
+  const { appTheme } = useThemeMode();
   const [polls, setPolls] = useState<PollCardData[]>([]);
   const [isLoadingPolls, setIsLoadingPolls] = useState(true);
   const [votingPollId, setVotingPollId] = useState<string | null>(null);
@@ -27,8 +32,8 @@ export const HomeFeedScreen = () => {
       const nextPolls = await getFeedPolls(activeFeedTab);
 
       setPolls(nextPolls);
-    } catch (error) {
-      console.error('load polls failed', error);
+    } catch {
+      setPolls([]);
     } finally {
       setIsLoadingPolls(false);
     }
@@ -67,20 +72,15 @@ export const HomeFeedScreen = () => {
 
       await loadPolls();
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === POSTGRES_UNIQUE_VIOLATION_CODE
-      ) {
+      if (hasErrorCode(error, POSTGRES_UNIQUE_VIOLATION_CODE)) {
         Alert.alert(
           '이미 참여한 투표예요',
-          '한 번 참여한 투표는 변경할 수 없어요.'
+          '한 번 참여한 투표는 변경할 수 없어요'
         );
         return;
       }
 
-      Alert.alert('투표 실패', '투표를 저장하지 못했어요.');
+      Alert.alert('투표 실패', '투표를 저장하지 못했어요');
     } finally {
       setVotingPollId(null);
     }
@@ -99,11 +99,34 @@ export const HomeFeedScreen = () => {
           </AppText>
         </View>
 
-        <View style={styles.headerPointsPill}>
-          <View style={styles.headerPointIcon}>
-            <AppText style={styles.headerPointIconText}>P</AppText>
+        <View
+          style={[
+            styles.headerPointsPill,
+            {
+              backgroundColor: appTheme.colors.surface,
+              borderColor: appTheme.colors.border,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.headerPointIcon,
+              { backgroundColor: appTheme.colors.primary },
+            ]}
+          >
+            <AppText
+              style={[
+                styles.headerPointIconText,
+                { color: appTheme.colors.text },
+              ]}
+            >
+              P
+            </AppText>
           </View>
-          <AppText style={styles.headerPointsText} weight="bold">
+          <AppText
+            style={[styles.headerPointsText, { color: appTheme.colors.text }]}
+            weight="bold"
+          >
             1,280P
           </AppText>
         </View>
@@ -114,13 +137,13 @@ export const HomeFeedScreen = () => {
       <View style={styles.feed}>
         {isLoadingPolls ? (
           <AppText tone="muted" variant="bodySmall">
-            투표를 불러오는 중이에요.
+            투표를 불러오는 중이에요
           </AppText>
         ) : null}
 
         {!isLoadingPolls && polls.length === 0 ? (
           <AppText tone="muted" variant="bodySmall">
-            아직 만들어진 투표가 없어요.
+            아직 만들어진 투표가 없어요
           </AppText>
         ) : null}
 
@@ -148,15 +171,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   brandTitle: {
-    color: theme.colors.text,
     fontSize: 30,
     fontWeight: '800',
     lineHeight: 36,
   },
   headerPointsPill: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -167,14 +187,12 @@ const styles = StyleSheet.create({
   },
   headerPointIcon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.full,
     height: 24,
     justifyContent: 'center',
     width: 24,
   },
   headerPointIconText: {
-    color: theme.colors.text,
     fontSize: 15,
     fontWeight: '800',
     includeFontPadding: false,
@@ -182,28 +200,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerPointsText: {
-    color: theme.colors.text,
     fontSize: 15,
     lineHeight: 20,
-  },
-  pointsPill: {
-    backgroundColor: theme.colors.rewardSoft,
-    borderRadius: theme.radius.full,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  summaryCard: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary,
-    gap: theme.spacing.lg,
-  },
-  summaryCopy: {
-    gap: theme.spacing.xs,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   feed: {
     gap: theme.spacing.lg,

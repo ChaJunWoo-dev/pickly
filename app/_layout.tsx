@@ -1,23 +1,19 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
+import { ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemeModeProvider, useThemeMode } from '@/contexts/theme-mode';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+const RootStack = () => {
+  const { colorScheme, navigationTheme } = useThemeMode();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navigationTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="poll/[id]" options={{ headerShown: false }} />
@@ -25,7 +21,15 @@ export default function RootLayout() {
         <Stack.Screen name="profile/history" options={{ headerShown: false }} />
         <Stack.Screen name="profile/settings" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
+  );
+};
+
+export default function RootLayout() {
+  return (
+    <ThemeModeProvider>
+      <RootStack />
+    </ThemeModeProvider>
   );
 }

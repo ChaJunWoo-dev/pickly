@@ -1,4 +1,5 @@
 import { theme } from '@/constants/theme';
+import { useThemeMode } from '@/contexts/theme-mode';
 import { AppText } from './app-text';
 import {
   ActivityIndicator,
@@ -27,26 +28,6 @@ type AppButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   style?: StyleProp<ViewStyle>;
 };
 
-const variantStyles: Record<AppButtonVariant, ViewStyle> = {
-  primary: {
-    backgroundColor: theme.colors.primaryStrong,
-  },
-  secondary: {
-    backgroundColor: theme.colors.secondarySoft,
-  },
-  outline: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.borderStrong,
-    borderWidth: 1,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  danger: {
-    backgroundColor: theme.colors.danger,
-  },
-};
-
 const sizeStyles: Record<AppButtonSize, ViewStyle> = {
   sm: {
     minHeight: 36,
@@ -73,14 +54,6 @@ const textToneByVariant: Record<
   danger: 'inverse',
 };
 
-const indicatorColorByVariant: Record<AppButtonVariant, string> = {
-  primary: theme.colors.inverseText,
-  secondary: theme.colors.text,
-  outline: theme.colors.text,
-  ghost: theme.colors.text,
-  danger: theme.colors.inverseText,
-};
-
 export const AppButton = ({
   children,
   variant = 'primary',
@@ -92,7 +65,34 @@ export const AppButton = ({
   style,
   ...props
 }: AppButtonProps) => {
+  const { appTheme } = useThemeMode();
   const isDisabled = disabled || loading;
+  const variantStyles: Record<AppButtonVariant, ViewStyle> = {
+    primary: {
+      backgroundColor: appTheme.colors.primaryStrong,
+    },
+    secondary: {
+      backgroundColor: appTheme.colors.secondarySoft,
+    },
+    outline: {
+      backgroundColor: appTheme.colors.surface,
+      borderColor: appTheme.colors.borderStrong,
+      borderWidth: 1,
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+    },
+    danger: {
+      backgroundColor: appTheme.colors.danger,
+    },
+  };
+  const indicatorColorByVariant: Record<AppButtonVariant, string> = {
+    primary: appTheme.colors.inverseText,
+    secondary: appTheme.colors.text,
+    outline: appTheme.colors.text,
+    ghost: appTheme.colors.text,
+    danger: appTheme.colors.inverseText,
+  };
 
   const handlePress = (event: GestureResponderEvent) => {
     if (isDisabled) {

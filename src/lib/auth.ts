@@ -5,7 +5,6 @@ export const ensureGuestSession = async () => {
     await supabase.auth.getSession();
 
   if (sessionError) {
-    console.error(sessionError);
     return null;
   }
 
@@ -14,7 +13,6 @@ export const ensureGuestSession = async () => {
   const { data, error } = await supabase.auth.signInAnonymously();
 
   if (error) {
-    console.error(error);
     return null;
   }
 
