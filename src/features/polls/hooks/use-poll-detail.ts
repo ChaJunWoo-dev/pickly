@@ -2,6 +2,7 @@ import {
   hasErrorCode,
   POSTGRES_UNIQUE_VIOLATION_CODE,
 } from '@/lib/database-errors';
+import { showErrorToast } from '@/lib/toast';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { getPollDetail } from '../api/get-poll-detail';
@@ -41,6 +42,7 @@ export const usePollDetail = ({ pollId }: UsePollDetailParams) => {
       setIsSaved(nextIsSaved);
       setCommentPreview(nextComments);
     } catch {
+      showErrorToast('투표 상세를 불러오지 못했어요');
       setPoll(null);
       setIsSaved(false);
       setCommentPreview([]);
@@ -65,7 +67,7 @@ export const usePollDetail = ({ pollId }: UsePollDetailParams) => {
       const nextIsSaved = await togglePollSave(poll.id, isSaved);
       setIsSaved(nextIsSaved);
     } catch {
-      Alert.alert('저장 실패', '저장 상태를 변경하지 못했어요');
+      showErrorToast('저장 상태를 변경하지 못했어요');
     } finally {
       setIsSavingPoll(false);
     }
@@ -90,7 +92,7 @@ export const usePollDetail = ({ pollId }: UsePollDetailParams) => {
         return;
       }
 
-      Alert.alert('투표 실패', '투표를 저장하지 못했어요');
+      showErrorToast('투표를 저장하지 못했어요');
     } finally {
       setIsVoting(false);
     }

@@ -1,6 +1,7 @@
 import { AppText, Screen } from '@/components';
 import { theme } from '@/constants/theme';
 import { useThemeMode } from '@/contexts/theme-mode';
+import { showErrorToast } from '@/lib/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -33,22 +34,26 @@ export const PollCommentsScreen = () => {
   const handleCreateComment = async () => {
     if (!id) return;
 
-    const nextComment = await createPollComment(id, commentBody);
+    try {
+      const nextComment = await createPollComment(id, commentBody);
 
-    if (!nextComment) return;
+      if (!nextComment) return;
 
-    setComments((prev) => [nextComment, ...prev]);
-    setCommentBody('');
+      setComments((prev) => [nextComment, ...prev]);
+      setCommentBody('');
 
-    if (
-      pollOwnerId &&
-      pollOwnerId !== nextComment.userId &&
-      pollOwnerCommentEnabled
-    ) {
-      void sendCommentPushNotification({
-        recipientUserId: pollOwnerId,
-        pollId: id,
-      });
+      if (
+        pollOwnerId &&
+        pollOwnerId !== nextComment.userId &&
+        pollOwnerCommentEnabled
+      ) {
+        void sendCommentPushNotification({
+          recipientUserId: pollOwnerId,
+          pollId: id,
+        });
+      }
+    } catch {
+      showErrorToast('댓글을 작성하지 못했어요');
     }
   };
 
@@ -68,6 +73,7 @@ export const PollCommentsScreen = () => {
         setPollOwnerId(nextPollOwnerId);
         setPollOwnerCommentEnabled(nextPollOwnerCommentEnabled);
       } catch {
+        showErrorToast('댓글을 불러오지 못했어요');
         setComments([]);
         setPollOwnerId(null);
         setPollOwnerCommentEnabled(true);

@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 import { ThemeModeProvider, useThemeMode } from '@/contexts/theme-mode';
 
@@ -86,6 +87,7 @@ const RootStack = () => {
         />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <Toast />
     </ThemeProvider>
   );
 };

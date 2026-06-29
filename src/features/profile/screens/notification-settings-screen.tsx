@@ -1,5 +1,6 @@
 import { Card, LoadingState, Screen } from '@/components';
 import { theme } from '@/constants/theme';
+import { showErrorToast } from '@/lib/toast';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, StyleSheet } from 'react-native';
 import {
@@ -113,6 +114,7 @@ export const NotificationSettingsScreen = () => {
           void savePushToken();
         }
       } catch {
+        showErrorToast('알림 설정을 불러오지 못했어요');
         setEnabledOptions(initialNotificationState);
         setPermission(initialPermission);
       } finally {
